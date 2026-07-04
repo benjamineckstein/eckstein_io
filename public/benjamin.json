@@ -1,0 +1,23 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Benjamin Eckstein",
+  "givenName": "Benjamin",
+  "familyName": "Eckstein",
+  "jobTitle": "Agentic Engineer",
+  "email": "mailto:benjamin@codewithagents.de",
+  "url": "https://eckstein.io/",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Kleinmachnow",
+    "addressCountry": "DE"
+  },
+  "sameAs": [
+    "https://www.codewithagents.de/",
+    "https://www.ki-syndikat.de/",
+    "https://github.com/benjamineckstein",
+    "https://github.com/codewithagents",
+    "https://www.npmjs.com/org/codewithagents",
+    "https://www.linkedin.com/in/benjamin-eckstein-089326207"
+  ]
+}

@@ -1,0 +1,27 @@
+# Benjamin Eckstein
+
+> Personal site of Benjamin Eckstein, freelance agentic engineer,
+> Kleinmachnow near Berlin, Germany. One page, one word, three senses.
+
+## Facts
+- Name: Benjamin Eckstein
+- Role: Agentic Engineer (freelance)
+- Location: Kleinmachnow, Germany
+- Degree: M.Sc. Computer Science
+- Experience: 20+ years of software engineering
+- Co-founder of KI-Syndikat; founder of CodeWithAgents
+- First public GitHub commit: 2016-09-09,
+  https://github.com/benjamineckstein/rep1/commit/03a21a1554db0459dffd6961be48939e1573fcc8
+
+## Machine-readable
+- Structured card (schema.org Person): https://eckstein.io/benjamin.json
+- vCard: https://eckstein.io/benjamin.vcf
+
+## Links
+- Email: benjamin@codewithagents.de
+- Work and blog: https://www.codewithagents.de/
+- Community: https://www.ki-syndikat.de/
+- GitHub: https://github.com/benjamineckstein
+- GitHub org: https://github.com/codewithagents
+- npm: https://www.npmjs.com/org/codewithagents
+- LinkedIn: https://www.linkedin.com/in/benjamin-eckstein-089326207

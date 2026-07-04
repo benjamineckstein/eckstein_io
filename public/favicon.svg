@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <style>
+    .p { fill: #f6f1e7; }
+    .i { fill: #211d15; }
+    @media (prefers-color-scheme: dark) {
+      .p { fill: #16140f; }
+      .i { fill: #e6dfd0; }
+    }
+  </style>
+  <rect class="p" width="16" height="16"/>
+  <rect class="i" x="3" y="3" width="10" height="10"/>
+</svg>
