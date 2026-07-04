@@ -1,0 +1,328 @@
+/* eckstein.io: one page, one word, three senses.
+   Every vertical measure is a multiple of the 28px baseline.
+   Hold the cornerstone (top left) to check. */
+
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/literata-latin-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/literata-latin-700.woff2') format('woff2');
+}
+
+:root {
+  --baseline: 1.75rem;
+  color-scheme: light;
+  --paper: #f6f1e7;
+  --ink: #211d15;
+  --muted: #6f6553;
+  --accent: #9a3b1e;
+  --hairline: #d9d1c0;
+  --grid-line: rgba(154, 59, 30, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #16140f;
+    --ink: #e6dfd0;
+    --muted: #998f76;
+    --accent: #d08a5e;
+    --hairline: #373226;
+    --grid-line: rgba(208, 138, 94, 0.3);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #16140f;
+  --ink: #e6dfd0;
+  --muted: #998f76;
+  --accent: #d08a5e;
+  --hairline: #373226;
+  --grid-line: rgba(208, 138, 94, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Literata', Georgia, 'Times New Roman', serif;
+  font-size: 1rem;
+  line-height: var(--baseline);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+a {
+  color: var(--accent);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Baseline grid overlay, shown while the cornerstone is held. */
+.grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background-image: linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px 100%);
+  background-size: 100% var(--baseline);
+}
+
+.grid-overlay.on {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-overlay {
+    transition: none;
+  }
+}
+
+/* The cornerstone: 12px square, top left. */
+.cornerstone {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  width: 12px;
+  height: 12px;
+  border: none;
+  background: var(--ink);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.cornerstone::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+.cornerstone:hover {
+  background: var(--accent);
+}
+
+.top-right {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.lang-switch a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.lang-switch a[aria-current='page'] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.lang-switch a:hover {
+  color: var(--accent);
+}
+
+.theme-toggle {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: linear-gradient(90deg, var(--ink) 0 50%, transparent 50% 100%);
+  cursor: pointer;
+}
+
+/* The dictionary entry. */
+main {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: calc(var(--baseline) * 2) 1.5rem 0;
+}
+
+.headword {
+  font-size: 2.25rem;
+  line-height: calc(var(--baseline) * 2);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.headword .article {
+  font-weight: 400;
+  font-size: 1.375rem;
+  color: var(--muted);
+}
+
+.pron {
+  color: var(--muted);
+}
+
+.grammar,
+.entry-meta {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.entry-meta {
+  margin-top: var(--baseline);
+}
+
+.entry-meta dt,
+.entry-meta dd {
+  display: inline;
+}
+
+.entry-meta dt {
+  font-weight: 700;
+}
+
+.senses,
+.xrefs {
+  list-style: none;
+  margin-top: var(--baseline);
+  border-top: 1px solid var(--hairline);
+  padding-top: calc(var(--baseline) - 1px);
+}
+
+.senses {
+  counter-reset: sense;
+}
+
+.senses li {
+  counter-increment: sense;
+  position: relative;
+  padding-left: 2.25rem;
+}
+
+.senses li + li,
+.xrefs li + li {
+  margin-top: var(--baseline);
+}
+
+.senses li::before {
+  content: counter(sense) '.';
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.sense-label {
+  color: var(--muted);
+}
+
+.xrefs li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.xrefs a {
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.xrefs a:hover {
+  color: var(--accent);
+}
+
+.xrefs .arrow {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+.xrefs .note {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+/* Footer */
+.site-footer {
+  flex: none;
+  width: 100%;
+  max-width: 40rem;
+  margin: var(--baseline) auto 0;
+  padding: 0 1.5rem var(--baseline);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.site-footer a {
+  color: inherit;
+}
+
+/* The build minifier collapses whitespace around these separators. */
+.footer-links > span,
+.lang-switch > span {
+  margin: 0 0.375rem;
+}
+
+/* Legal pages */
+.legal {
+  max-width: 38rem;
+  font-size: 0.9375rem;
+}
+
+.legal h1 {
+  font-size: 1.5rem;
+  line-height: calc(var(--baseline) * 2);
+}
+
+.legal h2 {
+  font-size: 1.0625rem;
+  margin-top: var(--baseline);
+}
+
+.legal p,
+.legal ul {
+  margin-top: var(--baseline);
+}
+
+.legal ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.legal .back {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.legal .back:hover {
+  color: var(--accent);
+}

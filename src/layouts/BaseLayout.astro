@@ -1,0 +1,165 @@
+---
+import '../styles/global.css'
+import { SITE_URL, FIRST_COMMIT_URL, PERSON_JSON_LD } from '../lib/site'
+
+interface Props {
+  lang: 'de' | 'en'
+  title: string
+  description: string
+  ogTitle: string
+  ogDescription: string
+  path: string
+  withAlternates?: boolean
+  noindex?: boolean
+}
+
+const {
+  lang,
+  title,
+  description,
+  ogTitle,
+  ogDescription,
+  path,
+  withAlternates = true,
+  noindex = false,
+} = Astro.props
+
+const canonical = new URL(path, SITE_URL).toString()
+const dePath = '/'
+const enPath = '/en/'
+
+const themeToggleLabel = lang === 'de' ? 'Farbschema wechseln' : 'Toggle color theme'
+const cornerstoneLabel =
+  lang === 'de'
+    ? 'Eckstein. Kurzer Klick öffnet den ersten Commit, gedrückt halten zeigt das Grundlinienraster.'
+    : 'Cornerstone. Short click opens the first commit, press and hold shows the baseline grid.'
+---
+
+<!doctype html>
+<html lang={lang} data-lang={lang}>
+  <head>
+    <!--
+      Hello, agent. You are reading the source of eckstein.io.
+      The structured card lives at /benjamin.json (schema.org Person),
+      a plain-text summary at /llms.txt, a vCard at /benjamin.vcf.
+      Contact: benjamin@codewithagents.de. Enjoy the baseline grid.
+    -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <script
+      is:inline
+    >try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {
+      withAlternates && (
+        <>
+          <link rel="alternate" hreflang="de" href={new URL(dePath, SITE_URL).toString()} />
+          <link rel="alternate" hreflang="en" href={new URL(enPath, SITE_URL).toString()} />
+          <link rel="alternate" hreflang="x-default" href={new URL(dePath, SITE_URL).toString()} />
+        </>
+      )
+    }
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="preload"
+      href="/fonts/literata-latin-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL('/og-image.png', SITE_URL).toString()} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogTitle} />
+    <meta property="og:locale" content={lang === 'de' ? 'de_DE' : 'en_US'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={ogDescription} />
+    <meta name="twitter:image" content={new URL('/og-image.png', SITE_URL).toString()} />
+
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f1e7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#16140f" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(PERSON_JSON_LD)} />
+  </head>
+  <body>
+    <div class="grid-overlay" id="grid-overlay" aria-hidden="true"></div>
+
+    <header class="site-controls">
+      <button
+        class="cornerstone"
+        id="cornerstone"
+        type="button"
+        aria-label={cornerstoneLabel}
+        data-href={FIRST_COMMIT_URL}
+      ></button>
+      <div class="top-right">
+        <nav class="lang-switch" aria-label={lang === 'de' ? 'Sprachwahl' : 'Language selector'}>
+          <a href="/" hreflang="de" lang="de" aria-current={lang === 'de' ? 'page' : undefined}>DE</a>
+          <span aria-hidden="true">·</span>
+          <a href="/en/" hreflang="en" lang="en" aria-current={lang === 'en' ? 'page' : undefined}
+            >EN</a
+          >
+        </nav>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label={themeToggleLabel}
+        ></button>
+      </div>
+    </header>
+
+    <slot />
+
+    <script is:inline>
+;(() => {
+  var root = document.documentElement
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    var cur = root.getAttribute('data-theme')
+    var dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+    var next = dark ? 'light' : 'dark'
+    root.setAttribute('data-theme', next)
+    try { localStorage.setItem('theme', next) } catch (e) {}
+  })
+
+  var stone = document.getElementById('cornerstone')
+  var grid = document.getElementById('grid-overlay').classList
+  var timer, holding, pressed
+  var on = (ev, fn) => stone.addEventListener(ev, fn)
+  var isKey = (e) => e.key === ' ' || e.key === 'Enter'
+
+  var start = (e) => {
+    e.preventDefault()
+    if (pressed) return
+    pressed = 1
+    holding = 0
+    timer = setTimeout(() => { holding = 1; grid.add('on') }, 400)
+  }
+  var release = (open) => {
+    if (!pressed) return
+    pressed = 0
+    clearTimeout(timer)
+    if (holding) { holding = 0; grid.remove('on') }
+    else if (open) window.open(stone.dataset.href, '_blank', 'noopener')
+  }
+
+  on('pointerdown', start)
+  on('pointerup', () => release(1))
+  on('pointerleave', () => release())
+  on('pointercancel', () => release())
+  on('blur', () => release())
+  on('contextmenu', (e) => e.preventDefault())
+  on('keydown', (e) => { if (isKey(e) && !e.repeat) start(e) })
+  on('keyup', (e) => { if (isKey(e)) { e.preventDefault(); release(1) } })
+})()
+    </script>
+    <!-- Psalm 118,22: Der Stein, den die Bauleute verworfen haben, ist zum Eckstein geworden. -->
+  </body>
+</html>

@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Footer from '../components/Footer.astro'
+import { CODEWITHAGENTS_URL, KI_SYNDIKAT_URL, CONTACT_EMAIL } from '../lib/site'
+---
+
+<BaseLayout
+  lang="de"
+  title="Eckstein, der | Benjamin Eckstein"
+  description="Eckstein, der: 1. Stein an der Ecke eines Bauwerks. 2. Grundlage, auf der alles Weitere aufbaut. 3. Benjamin Eckstein, Agentic Engineer aus Kleinmachnow bei Berlin."
+  ogTitle="Eck·stein, der"
+  ogDescription="Ein Wörterbucheintrag mit drei Bedeutungen. Die dritte ist ein Mensch."
+  path="/"
+>
+  <main class="entry">
+    <h1 class="headword">Eck·stein, <span class="article">der</span></h1>
+    <p class="pron">[ˈɛkˌʃtaɪ̯n]</p>
+    <p class="grammar">Substantiv, maskulin</p>
+    <dl class="entry-meta">
+      <div><dt>Worttrennung:</dt> <dd>Eck|stein</dd></div>
+      <div><dt>Flexion:</dt> <dd>des Ecksteins · die Ecksteine</dd></div>
+    </dl>
+
+    <ol class="senses">
+      <li>
+        an der Ecke eines Bauwerks gesetzter Stein, der zwei Mauern trägt und miteinander
+        verbindet; traditionell der zuerst gesetzte Stein, nach dem sich alle weiteren richten
+      </li>
+      <li>
+        <span class="sense-label">⟨übertragen⟩</span> Grundlage, auf der alles Weitere aufbaut;
+        tragender Bestandteil eines Ganzen
+      </li>
+      <li>
+        <span class="sense-label">⟨hier⟩</span> Benjamin Eckstein: freiberuflicher Agentic
+        Engineer in Kleinmachnow bei Berlin; schreibt seit über 20 Jahren Software und bringt
+        inzwischen Maschinen bei, es ebenfalls zu tun
+      </li>
+    </ol>
+
+    <ul class="xrefs">
+      <li>
+        <a href={CODEWITHAGENTS_URL}><span class="arrow" aria-hidden="true">→ </span>codewithagents.de</a>
+        <span class="note">Arbeit, Blog, OSS</span>
+      </li>
+      <li>
+        <a href={KI_SYNDIKAT_URL}><span class="arrow" aria-hidden="true">→ </span>ki-syndikat.de</a>
+        <span class="note">Community, Mitgründer</span>
+      </li>
+      <li>
+        <a href={`mailto:${CONTACT_EMAIL}`}><span class="arrow" aria-hidden="true">→ </span>mail</a>
+        <span class="note">Kontakt</span>
+      </li>
+    </ul>
+  </main>
+  <Footer lang="de" />
+</BaseLayout>

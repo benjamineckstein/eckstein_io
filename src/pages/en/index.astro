@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import Footer from '../../components/Footer.astro'
+import { CODEWITHAGENTS_EN_URL, KI_SYNDIKAT_URL, CONTACT_EMAIL } from '../../lib/site'
+---
+
+<BaseLayout
+  lang="en"
+  title="Eckstein, der | Benjamin Eckstein"
+  description="Eckstein, der: a German dictionary entry with three senses. 1. The stone at the corner of a building. 2. The foundation everything rests on. 3. Benjamin Eckstein, agentic engineer near Berlin."
+  ogTitle="Eck·stein, der"
+  ogDescription="A dictionary entry with three senses. The third one is a person."
+  path="/en/"
+>
+  <main class="entry">
+    <h1 class="headword" lang="de">Eck·stein, <span class="article">der</span></h1>
+    <p class="pron">[ˈɛkˌʃtaɪ̯n]</p>
+    <p class="grammar">German, noun (masculine)</p>
+    <dl class="entry-meta">
+      <div><dt>Hyphenation:</dt> <dd lang="de">Eck|stein</dd></div>
+      <div><dt>Declension:</dt> <dd lang="de">des Ecksteins · die Ecksteine</dd></div>
+    </dl>
+
+    <ol class="senses">
+      <li>
+        a stone set at the corner of a building, carrying and joining two walls; traditionally
+        the first stone laid, the one all others are aligned to
+      </li>
+      <li>
+        <span class="sense-label">⟨figurative⟩</span> the foundation on which everything else is
+        built; a load-bearing part of a whole
+      </li>
+      <li>
+        <span class="sense-label">⟨here⟩</span> Benjamin Eckstein: freelance agentic engineer in
+        Kleinmachnow near Berlin; has written software for more than 20 years and now teaches
+        machines to do the same
+      </li>
+    </ol>
+
+    <ul class="xrefs">
+      <li>
+        <a href={CODEWITHAGENTS_EN_URL}><span class="arrow" aria-hidden="true">→ </span>codewithagents.de</a>
+        <span class="note">work, blog, OSS</span>
+      </li>
+      <li>
+        <a href={KI_SYNDIKAT_URL}><span class="arrow" aria-hidden="true">→ </span>ki-syndikat.de</a>
+        <span class="note">community, co-founder</span>
+      </li>
+      <li>
+        <a href={`mailto:${CONTACT_EMAIL}`}><span class="arrow" aria-hidden="true">→ </span>mail</a>
+        <span class="note">contact</span>
+      </li>
+    </ul>
+  </main>
+  <Footer lang="en" />
+</BaseLayout>

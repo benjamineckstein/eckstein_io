@@ -1,0 +1,34 @@
+---
+import { REPO_URL, getCommitHash } from '../lib/site'
+
+interface Props {
+  lang: 'de' | 'en'
+}
+
+const { lang } = Astro.props
+const commitHash = getCommitHash()
+const commitUrl = commitHash === 'dev' ? REPO_URL : `${REPO_URL}/commit/${commitHash}`
+---
+
+<footer class="site-footer">
+  <p class="footer-links">
+    <a href="/impressum/">Impressum</a>
+    <span aria-hidden="true">·</span>
+    <a href="/datenschutz/">Datenschutz</a>
+    <span aria-hidden="true">·</span>
+    {
+      lang === 'de' ? (
+        <>
+          Quelltext: <a href={commitUrl}>Commit {commitHash}</a>
+        </>
+      ) : (
+        <>
+          source: <a href={commitUrl}>commit {commitHash}</a>
+        </>
+      )
+    }
+  </p>
+  <p class="footer-microcopy">
+    {lang === 'de' ? 'Keine Cookies. Kein Tracking. Nur ein Stein.' : 'No cookies. No tracking. Just a stone.'}
+  </p>
+</footer>

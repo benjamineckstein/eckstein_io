@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Footer from '../components/Footer.astro'
+---
+
+<BaseLayout
+  lang="de"
+  title="404 | eckstein.io"
+  description="Seite nicht gefunden."
+  ogTitle="404 | eckstein.io"
+  ogDescription="Seite nicht gefunden."
+  path="/404/"
+  withAlternates={false}
+  noindex={true}
+>
+  <main class="entry">
+    <h1 class="headword">404</h1>
+    <p class="grammar">Fehlercode · error code</p>
+
+    <ol class="senses">
+      <li>Seite, die es unter dieser Adresse nicht gibt; vielleicht nie gegeben hat</li>
+      <li><span class="sense-label">⟨English⟩</span> page not found</li>
+    </ol>
+
+    <ul class="xrefs">
+      <li>
+        <a href="/"><span class="arrow" aria-hidden="true">→ </span>eckstein.io</a>
+        <span class="note">zurück zum Eintrag · back to the entry</span>
+      </li>
+    </ul>
+  </main>
+  <Footer lang="de" />
+</BaseLayout>
