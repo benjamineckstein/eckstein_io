@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Footer from '../components/Footer.astro'
+import { CONTACT_EMAIL } from '../lib/site'
+---
+
+<BaseLayout
+  lang="de"
+  title="Impressum | eckstein.io"
+  description="Impressum und Anbieterkennzeichnung von eckstein.io, Benjamin Eckstein."
+  ogTitle="Impressum | eckstein.io"
+  ogDescription="Impressum und Anbieterkennzeichnung von eckstein.io, Benjamin Eckstein."
+  path="/impressum/"
+  withAlternates={false}
+>
+  <main class="legal">
+    <p><a class="back" href="/">← eckstein.io</a></p>
+    <h1>Impressum</h1>
+
+    <p>
+      Dieses Impressum und die Datenschutzerklärung gelten auch für unsere Accounts in sozialen
+      Medien wie z.B. LinkedIn.
+    </p>
+
+    <p>
+      <strong>Benjamin Eckstein</strong><br />
+      Karl-Marx-Str. 126<br />
+      14532 Kleinmachnow<br />
+      Freiberufler / Freelancer
+    </p>
+
+    <p>
+      Berufsbezeichnung: M.Sc. Informatik (verliehen in der Bundesrepublik Deutschland)<br />
+      Umsatzsteuer-Identifikationsnummer: DE284087022
+    </p>
+
+    <p>
+      Telefon: +49 157 73822343<br />
+      E-Mail: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+    </p>
+
+    <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+    <p>
+      Benjamin Eckstein<br />
+      Karl-Marx-Str. 126<br />
+      14532 Kleinmachnow
+    </p>
+
+    <h2>EU-Streitschlichtung</h2>
+    <p>
+      Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
+      <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer"
+        >https://ec.europa.eu/consumers/odr/</a
+      >. Unsere E-Mail-Adresse finden Sie oben im Impressum.
+    </p>
+    <p>
+      Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer
+      Verbraucherschlichtungsstelle teilzunehmen.
+    </p>
+  </main>
+  <Footer lang="de" />
+</BaseLayout>
