@@ -483,9 +483,13 @@ nav.links {
   /* The one-liner headline now dominates the block .mid centers between
      masthead and nav; give the tagline a touch more presence to match that
      scale (was sized for the two-line corner layout), which also eats into
-     the gap it leaves below without upsetting the centering itself. */
+     the gap it leaves below without upsetting the centering itself. The
+     36em cap on .tag was sized for that old layout too and forces an ugly
+     wrap here (a lone trailing word alone on its own line), now that there
+     is easily enough width for the whole sentence on one line. */
   .tag {
     font-size: clamp(14px, 1.5vw, 22px);
+    max-width: none;
   }
 
   .link {

@@ -307,7 +307,9 @@
         anchors.push({ x: r.left + r.width / 2, y: r.top + r.height / 2, el: el })
         if (perLetter > 1) anchors.push({ x: r.left + r.width * 0.2, y: r.top + r.height * 0.75, el: el })
       })
-      var cap = W < 768 ? 25 : 66
+      // Enough free nodes to read as a full-page network, not a lucky
+      // cluster: too few and most land too far apart to draw an edge.
+      var cap = W < 768 ? 60 : 240
       var freeN = Math.max(0, cap - anchors.length)
       netNodes = anchors.map(function (a) {
         return { x: a.x, y: a.y, ox: 0, oy: 0, fixed: true, el: a.el, vx: 0, vy: 0, glow: 0 }
@@ -324,7 +326,7 @@
           glow: 0,
         })
       }
-      var maxD = Math.min(W, H) * 0.16
+      var maxD = Math.min(W, H) * 0.19
       netEdges = []
       for (var a2 = 0; a2 < netNodes.length; a2++) {
         for (var b2 = a2 + 1; b2 < netNodes.length; b2++) {
@@ -631,7 +633,7 @@
           var ed = netEdges[i],
             n1 = netNodes[ed.a],
             n2 = netNodes[ed.b]
-          ctx.strokeStyle = 'rgba(120,170,150,' + (0.045 + Math.max(n1.glow, n2.glow) * 0.05).toFixed(3) + ')'
+          ctx.strokeStyle = 'rgba(120,170,150,' + (0.09 + Math.max(n1.glow, n2.glow) * 0.07).toFixed(3) + ')'
           ctx.beginPath()
           ctx.moveTo(n1.x + n1.ox, n1.y + n1.oy)
           ctx.lineTo(n2.x + n2.ox, n2.y + n2.oy)
@@ -639,7 +641,7 @@
         }
         for (i = 0; i < netNodes.length; i++) {
           var nd2 = netNodes[i]
-          ctx.globalAlpha = 0.08 + nd2.glow * 0.4
+          ctx.globalAlpha = 0.15 + nd2.glow * 0.4
           ctx.fillStyle = cAcc
           ctx.fillRect(nd2.x + nd2.ox - 0.6, nd2.y + nd2.oy - 0.6, 1.2, 1.2)
         }
