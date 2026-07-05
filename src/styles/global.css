@@ -290,6 +290,19 @@ h1.rows {
   display: block;
   will-change: transform;
   transform-origin: 50% 88%;
+  cursor: pointer;
+}
+
+/* The lithophone's reduced-motion fallback: no physics jolt, just a brief
+   tick. Sound plays regardless, this is purely visual feedback. */
+@keyframes tick {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.struck {
+  animation: tick 0.15s ease;
 }
 
 .row::after {

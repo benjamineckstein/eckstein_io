@@ -34,16 +34,121 @@
     'use strict'
     var RM = matchMedia('(prefers-reduced-motion: reduce)').matches
     var doc = document.documentElement
+    var els = [].slice.call(document.querySelectorAll('.st'))
+    if (!els.length) return
+
+    // ---- The lithophone: click or tap a letter to strike it. WebAudio
+    // only, no audio files. Strictly gesture-gated: the AudioContext is
+    // created on the first strike, never on load, and is suspended when
+    // the tab is hidden. Works even under reduced motion (sound is
+    // user-initiated); only the visual response changes, see strikeVisual. ----
+    var AC = null,
+      master = null,
+      noiseBuf = null
+    var scale = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25]
+    function ensureAudio() {
+      if (AC) return
+      var A = window.AudioContext || window.webkitAudioContext
+      if (!A) return
+      try {
+        AC = new A()
+      } catch (e) {
+        return
+      }
+      master = AC.createGain()
+      master.gain.value = 0.5
+      master.connect(AC.destination)
+      var n = Math.floor(AC.sampleRate * 0.05)
+      noiseBuf = AC.createBuffer(1, n, AC.sampleRate)
+      var d = noiseBuf.getChannelData(0)
+      for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2)
+    }
+    function strikeNote(freq) {
+      if (!AC) return
+      if (AC.state === 'suspended') AC.resume()
+      if (AC.state !== 'running') return
+      var t = AC.currentTime
+      var noise = AC.createBufferSource()
+      noise.buffer = noiseBuf
+      var bp = AC.createBiquadFilter()
+      bp.type = 'bandpass'
+      bp.frequency.value = Math.min(4200, freq * 5.5)
+      bp.Q.value = 1.2
+      var ng = AC.createGain()
+      ng.gain.setValueAtTime(0.5, t)
+      ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.045)
+      noise.connect(bp)
+      bp.connect(ng)
+      ng.connect(master)
+      noise.start(t)
+      noise.stop(t + 0.06)
+
+      var osc = AC.createOscillator()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq * 1.015, t)
+      osc.frequency.exponentialRampToValueAtTime(freq, t + 0.03)
+      var lp = AC.createBiquadFilter()
+      lp.type = 'lowpass'
+      lp.frequency.value = freq * 3
+      var og = AC.createGain()
+      og.gain.setValueAtTime(0.0001, t)
+      og.gain.exponentialRampToValueAtTime(0.32, t + 0.006)
+      og.gain.exponentialRampToValueAtTime(0.0001, t + 0.55)
+      osc.connect(lp)
+      lp.connect(og)
+      og.connect(master)
+      osc.start(t)
+      osc.stop(t + 0.58)
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden && AC && AC.state === 'running') AC.suspend()
+    })
+
+    // `stones` stays null until (if) the entrance physics below sets it up;
+    // strikeVisual falls back to a plain CSS tick otherwise (no physics,
+    // or reduced motion).
+    var stones = null
+    function strikeVisual(i) {
+      var el = els[i]
+      if (stones && stones[i]) {
+        stones[i].sq = Math.max(stones[i].sq, 0.16)
+        burst(stones[i].cx + stones[i].ox, stones[i].bot, 5, 190, false)
+        wake()
+      } else {
+        el.classList.remove('struck')
+        void el.offsetWidth
+        el.classList.add('struck')
+      }
+    }
+    function strike(i) {
+      ensureAudio()
+      strikeNote(scale[i])
+      strikeVisual(i)
+    }
+    els.forEach(function (el, i) {
+      el.addEventListener('pointerdown', function (e) {
+        e.preventDefault()
+        strike(i)
+      })
+    })
+    document.addEventListener('keydown', function (e) {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
+      var k = e.key.toLowerCase()
+      els.forEach(function (el, i) {
+        if (el.textContent.toLowerCase() === k) strike(i)
+      })
+    })
+
     // Reduced motion (or a user who got here before fonts/JS settled): leave
     // the static, already-correct CSS layout alone. No 'anim' class means
-    // none of the entrance transforms below ever apply.
+    // none of the entrance transforms below ever apply. The lithophone
+    // above still works either way.
     if (RM) return
 
     var rowEls = [].slice.call(document.querySelectorAll('.row'))
-    var els = [].slice.call(document.querySelectorAll('.st'))
     var stone = document.getElementById('cornerstone')
     var cv = document.getElementById('dust')
-    if (!els.length || !stone || !cv || !(cv instanceof HTMLCanvasElement)) return
+    if (!stone || !cv || !(cv instanceof HTMLCanvasElement)) return
     var ctx = cv.getContext('2d')
     if (!ctx) return
 
@@ -70,7 +175,7 @@
     palette()
 
     var delays = [0, 90, 180, 430, 520, 610, 700, 790]
-    var stones = els.map(function (el, i) {
+    stones = els.map(function (el, i) {
       return {
         el: el,
         row: i < 3 ? 0 : 1,
@@ -209,8 +314,11 @@
           if (s.tumble) s.rot += s.vrot * dt
           if (s.y >= 0) {
             s.y = 0
+            // Every letter kicks up dust the first time it lands, hard
+            // bounce or soft: only the bounce-vs-settle branch depends on
+            // velocity, the dust puff itself does not.
+            if (!s.done) boom(s, Math.max(s.v, 320))
             if (s.v > 460) {
-              boom(s, s.v)
               s.v = -s.v * REST
               if (s.tumble) s.vrot *= -0.45
             } else {
