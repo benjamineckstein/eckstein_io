@@ -10,8 +10,7 @@
 - Degree: M.Sc. Computer Science
 - Experience: 20+ years of software engineering
 - Co-founder of KI-Syndikat; founder of CodeWithAgents
-- First public GitHub commit: 2016-09-09,
-  https://github.com/benjamineckstein/rep1/commit/03a21a1554db0459dffd6961be48939e1573fcc8
+- Source of this site: https://github.com/benjamineckstein/eckstein_io
 
 ## Machine-readable
 - Structured card (schema.org Person): https://eckstein.io/benjamin.json

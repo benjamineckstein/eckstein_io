@@ -17,9 +17,13 @@ export const GITHUB_ORG_URL = 'https://github.com/codewithagents'
 export const NPM_ORG_URL = 'https://www.npmjs.com/org/codewithagents'
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/benjamin-eckstein-089326207'
 
-/** Benjamin's first public GitHub commit. Opened by a short click on the cornerstone mark. */
+/**
+ * The first commit of this very repository: the first stone of eckstein.io.
+ * Opened by a short click on the cornerstone mark. A cornerstone should point
+ * at its own foundation, not at some other building.
+ */
 export const FIRST_COMMIT_URL =
-  'https://github.com/benjamineckstein/rep1/commit/03a21a1554db0459dffd6961be48939e1573fcc8'
+  'https://github.com/benjamineckstein/eckstein_io/commit/885b87810bdea240e09571c1f77580d18d691996'
 
 /**
  * Short commit hash of the current build, used in the footer source link.
