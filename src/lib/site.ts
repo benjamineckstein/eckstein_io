@@ -8,7 +8,7 @@ import { execSync } from 'node:child_process'
 
 export const SITE_URL = 'https://eckstein.io'
 export const REPO_URL = 'https://github.com/benjamineckstein/eckstein_io'
-export const CONTACT_EMAIL = 'benjamin@codewithagents.de'
+export const CONTACT_EMAIL = 'benjamin@eckstein.io'
 export const CODEWITHAGENTS_URL = 'https://www.codewithagents.de/'
 export const CODEWITHAGENTS_EN_URL = 'https://www.codewithagents.de/en/'
 export const KI_SYNDIKAT_URL = 'https://www.ki-syndikat.de/'
@@ -43,7 +43,7 @@ export const PERSON_JSON_LD = {
   givenName: 'Benjamin',
   familyName: 'Eckstein',
   jobTitle: 'Agentic Engineer',
-  email: 'mailto:benjamin@codewithagents.de',
+  email: `mailto:${CONTACT_EMAIL}`,
   url: 'https://eckstein.io/',
   address: {
     '@type': 'PostalAddress',

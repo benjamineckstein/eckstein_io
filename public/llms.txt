@@ -17,7 +17,7 @@
 - vCard: https://eckstein.io/benjamin.vcf
 
 ## Links
-- Email: benjamin@codewithagents.de
+- Email: benjamin@eckstein.io
 - Work and blog: https://www.codewithagents.de/
 - Community: https://www.ki-syndikat.de/
 - GitHub: https://github.com/benjamineckstein
