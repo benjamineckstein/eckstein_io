@@ -134,7 +134,8 @@
       var el = els[i]
       if (stones && stones[i]) {
         stones[i].sq = Math.max(stones[i].sq, 0.16)
-        burst(stones[i].cx + stones[i].ox, stones[i].bot, 5, 190, false)
+        var tapScale = Math.max(1, (stones[i].h || 234) / 234)
+        burst(stones[i].cx + stones[i].ox, stones[i].bot, 5, 190 * tapScale, false, tapScale)
         wake()
       } else {
         el.classList.remove('struck')
@@ -407,6 +408,7 @@
         s.cx = r.left + r.width / 2
         s.cy = r.top + r.height / 2
         s.bot = r.bottom
+        s.h = r.height
       })
     }
     measure()
@@ -449,23 +451,27 @@
     if (baseRuleEl) baseRuleEl.style.transform = 'scaleX(0)'
     doc.classList.add('anim')
 
-    function burst(x, y, n, pw, acc) {
+    function burst(x, y, n, pw, acc, scale) {
+      scale = scale || 1
       for (var i = 0; i < n; i++) {
         dust.push({
-          x: x + (Math.random() - 0.5) * 36,
+          x: x + (Math.random() - 0.5) * 36 * scale,
           y: y - 2,
           vx: (Math.random() - 0.5) * pw,
           vy: -Math.random() * pw * 0.42 - 30,
           l: 0.38 + Math.random() * 0.5,
           t: 0,
-          sz: 1 + Math.random() * 2.4,
+          sz: (1 + Math.random() * 2.4) * scale,
           a: acc && Math.random() < 0.4,
         })
       }
     }
     function boom(s, v) {
-      var n = Math.round(Math.min(26, 3 + (v - 300) / 110))
-      burst(s.cx + s.ox, s.bot, s.big ? 26 : n, s.big ? 760 : Math.min(760, v * 0.32), s.big)
+      // Scale the splash to the stone's own height, so it still reads next
+      // to the much taller one-liner letters instead of vanishing as a speck.
+      var scale = Math.max(1, (s.h || 234) / 234)
+      var n = Math.round(Math.min(26, 3 + (v - 300) / 110) * Math.min(1.6, scale))
+      burst(s.cx + s.ox, s.bot, s.big ? 26 : n, (s.big ? 760 : Math.min(760, v * 0.32)) * scale, s.big, scale)
       s.sq = Math.min(0.02 + v / 26000, 0.09)
     }
     function settle(s) {
