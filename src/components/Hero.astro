@@ -37,22 +37,14 @@
     var els = [].slice.call(document.querySelectorAll('.st'))
     if (!els.length) return
 
-    // ---- The lithophone: click or tap a letter to strike it. WebAudio
-    // only, no audio files. Strictly gesture-gated: the AudioContext is
-    // created on the first strike, never on load, and is suspended when
-    // the tab is hidden. Works even under reduced motion (sound is
-    // user-initiated); only the visual response changes, see strikeVisual. ----
+    // Lithophone: gesture-gated WebAudio, no files, works under RM too.
     var AC = null,
       master = null,
       noiseBuf = null
     var scale = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25]
     var iosUnlocked = false
     function unlockIOSAudio() {
-      // The classic mute-switch workaround: play a ~1s silent WAV through
-      // an HTML5 audio element once, on the first real gesture. This
-      // promotes the iOS audio session to playback so WebAudio stays
-      // audible even with the ring switch on silent. Never runs on load,
-      // never autoplays: only ever called from inside a strike.
+      // iOS mute-switch workaround: a silent WAV once, on first gesture.
       if (iosUnlocked) return
       iosUnlocked = true
       try {
@@ -119,12 +111,7 @@
     }
     function strikeNote(freq) {
       if (!AC) return
-      // Some mobile browsers (notably iOS Safari) create the context
-      // suspended even inside a gesture and need resume() to actually
-      // resolve before scheduling sound; resume() is a promise, so the
-      // note has to wait for it rather than checking state right after
-      // firing it (which desktop Chrome tolerates by resolving eagerly,
-      // masking this on desktop while staying silent on mobile).
+      // Mobile browsers need resume() to resolve before scheduling sound.
       if (AC.state === 'running') {
         playScheduled(freq)
       } else {
@@ -142,9 +129,6 @@
       }
     })
 
-    // `stones` stays null until (if) the entrance physics below sets it up;
-    // strikeVisual falls back to a plain CSS tick otherwise (no physics,
-    // or reduced motion).
     var stones = null
     function strikeVisual(i) {
       var el = els[i]
@@ -157,10 +141,10 @@
         void el.offsetWidth
         el.classList.add('struck')
       }
+      // Sound and light as one event (hoisted, safe no-op under RM).
+      pulseFromLetter(i)
     }
-    // Hidden melody easter egg: strike the letters in the name's own order,
-    // E-C-K-S-T-E-I-N (either E counts), and the poster answers back. No
-    // hint anywhere on the page, discoverable only.
+    // Hidden melody: strike E-C-K-S-T-E-I-N in order (either E counts).
     var comboTarget = ['E', 'C', 'K', 'S', 'T', 'E', 'I', 'N']
     var comboIndex = 0
     function comboReward() {
@@ -199,18 +183,12 @@
         comboIndex = letter === comboTarget[0] ? 1 : 0
       }
     }
-    // Guards a single physical tap from firing twice (pointerdown plus a
-    // synthesized click some browsers still deliver despite the
-    // preventDefault below) without blocking legitimate fast, distinct
-    // taps the melody sequence needs.
+    // Debounce so one tap (pointerdown + a synthesized click) can't double-strike.
     var lastStrikeAt = new Array(els.length).fill(0)
     function strike(i) {
       var now = performance.now()
       if (now - lastStrikeAt[i] < 400) return
       lastStrikeAt[i] = now
-      // ensureAudio()/strikeNote() must run synchronously from here, inside
-      // the real user gesture, so the browser still counts this as
-      // activated even though strikeNote's own resume chain finishes async.
       ensureAudio()
       strikeNote(scale[i])
       strikeVisual(i)
@@ -234,11 +212,41 @@
       })
     })
 
-    // Reduced motion (or a user who got here before fonts/JS settled): leave
-    // the static, already-correct CSS layout alone. No 'anim' class means
-    // none of the entrance transforms below ever apply. The lithophone
-    // above still works either way.
-    if (RM) return
+    // Reduced motion: static constellation only, then skip the rest below.
+    if (RM) {
+      var rmCv = document.getElementById('dust')
+      if (rmCv instanceof HTMLCanvasElement) {
+        var rmCtx = rmCv.getContext('2d')
+        if (rmCtx) {
+          var rmW = innerWidth,
+            rmH = innerHeight,
+            rmDPR = Math.min(devicePixelRatio || 1, 2)
+          rmCv.width = Math.round(rmW * rmDPR)
+          rmCv.height = Math.round(rmH * rmDPR)
+          rmCtx.setTransform(rmDPR, 0, 0, rmDPR, 0, 0)
+          var rmNodes = els.map(function (el) {
+            var r = el.getBoundingClientRect()
+            return { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+          })
+          var rmMaxD = Math.min(rmW, rmH) * 0.22
+          rmCtx.lineWidth = 1
+          for (var ra = 0; ra < rmNodes.length; ra++) {
+            for (var rb = ra + 1; rb < rmNodes.length; rb++) {
+              var rdx = rmNodes[ra].x - rmNodes[rb].x,
+                rdy = rmNodes[ra].y - rmNodes[rb].y
+              if (rdx * rdx + rdy * rdy < rmMaxD * rmMaxD) {
+                rmCtx.strokeStyle = 'rgba(120,170,150,.06)'
+                rmCtx.beginPath()
+                rmCtx.moveTo(rmNodes[ra].x, rmNodes[ra].y)
+                rmCtx.lineTo(rmNodes[rb].x, rmNodes[rb].y)
+                rmCtx.stroke()
+              }
+            }
+          }
+        }
+      }
+      return
+    }
 
     var rowEls = [].slice.call(document.querySelectorAll('.row'))
     var stone = document.getElementById('cornerstone')
@@ -269,27 +277,75 @@
     }
     palette()
 
-    // Ambient background: sparse, slow-drifting sediment behind the poster,
-    // reusing the entrance dust palette at a fraction of its opacity. Never
-    // stops (wraps at the edges instead of expiring) so the frame loop, and
-    // document.hidden pause, run forever once seeded; kept sparse and cheap
-    // to stay well under 60fps budget and never compete with the text.
-    var ambient = []
-    function seedAmbient() {
-      var n = Math.max(6, Math.min(28, Math.round((W * H) / 130000)))
-      ambient = []
-      for (var i = 0; i < n; i++) {
-        ambient.push({
+    // Letters double as fixed anchor nodes (sampled on settle/resize, never
+    // per frame); sparse free nodes fill the rest; thin edges connect near
+    // nodes; pulses travel them, including one per strike (above).
+    var netNodes = [],
+      netEdges = [],
+      netPulses = [],
+      netBuilt = false,
+      netAmbientT = 0,
+      nextPulseAt = 1.5 + Math.random() * 1.5
+    var glowSprite = (function () {
+      var s = 28,
+        c = document.createElement('canvas')
+      c.width = c.height = s
+      var g = c.getContext('2d')
+      if (!g) return null
+      var grd = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2)
+      grd.addColorStop(0, 'rgba(255,255,255,.95)')
+      grd.addColorStop(1, 'rgba(255,255,255,0)')
+      g.fillStyle = grd
+      g.fillRect(0, 0, s, s)
+      return c
+    })()
+    function buildNetwork() {
+      var perLetter = W < 768 ? 1 : 2
+      var anchors = []
+      els.forEach(function (el) {
+        var r = el.getBoundingClientRect()
+        anchors.push({ x: r.left + r.width / 2, y: r.top + r.height / 2, el: el })
+        if (perLetter > 1) anchors.push({ x: r.left + r.width * 0.2, y: r.top + r.height * 0.75, el: el })
+      })
+      var cap = W < 768 ? 25 : 66
+      var freeN = Math.max(0, cap - anchors.length)
+      netNodes = anchors.map(function (a) {
+        return { x: a.x, y: a.y, ox: 0, oy: 0, fixed: true, el: a.el, vx: 0, vy: 0, glow: 0 }
+      })
+      for (var i = 0; i < freeN; i++) {
+        netNodes.push({
           x: Math.random() * W,
           y: Math.random() * H,
-          vx: (Math.random() - 0.5) * 3,
-          vy: -2 - Math.random() * 3,
-          sz: 0.6 + Math.random() * 1.1,
-          a: 0.035 + Math.random() * 0.045,
+          ox: 0,
+          oy: 0,
+          fixed: false,
+          vx: (Math.random() - 0.5) * 2.2,
+          vy: (Math.random() - 0.5) * 2.2,
+          glow: 0,
         })
       }
+      var maxD = Math.min(W, H) * 0.16
+      netEdges = []
+      for (var a2 = 0; a2 < netNodes.length; a2++) {
+        for (var b2 = a2 + 1; b2 < netNodes.length; b2++) {
+          var dx = netNodes[a2].x - netNodes[b2].x,
+            dy = netNodes[a2].y - netNodes[b2].y
+          if (dx * dx + dy * dy < maxD * maxD) netEdges.push({ a: a2, b: b2 })
+        }
+      }
+      netBuilt = true
     }
-    seedAmbient()
+    function firePulse(a, b) {
+      netPulses.push({ a: a, b: b, t: 0, dur: 0.5 + Math.random() * 0.4 })
+    }
+    function pulseFromLetter(i) {
+      if (!netBuilt || !els[i]) return
+      for (var e = 0; e < netEdges.length; e++) {
+        var ed = netEdges[e]
+        if (netNodes[ed.a].el === els[i]) firePulse(ed.a, ed.b)
+        else if (netNodes[ed.b].el === els[i]) firePulse(ed.b, ed.a)
+      }
+    }
 
     var delays = [0, 90, 180, 430, 520, 610, 700, 790]
     stones = els.map(function (el, i) {
@@ -316,8 +372,6 @@
         done: false,
       }
     })
-    // The one idea borrowed from the wildcard prototype: this single stone
-    // tumbles (gains rotation) as it falls, unlike the letters above it.
     var spin = (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 3)
     var rest = (Math.random() < 0.5 ? -1 : 1) * (0.035 + Math.random() * 0.05)
     var fallen = {
@@ -382,11 +436,7 @@
       s.y = -(s.bot + H * 0.22 + Math.random() * 90)
       apply(s)
     })
-    // The rolling stone: falls straight down on the left, near the first
-    // letter, same as the other stones; once it lands it rolls along the
-    // floor to its resting corner instead of settling in place. Uses the
-    // "E" stone's pre-transform measurement (from measure(), above) for
-    // the horizontal start, since it is otherwise about to fall too.
+    // The stone falls left, near "E", then rolls to its resting corner.
     var baseRuleEl = document.querySelector('.base-rule')
     var leftRef = stones[0]
     if (leftRef) {
@@ -444,19 +494,12 @@
           if (s.tumble) s.rot += s.vrot * dt
           if (s.y >= 0) {
             s.y = 0
-            // Every letter kicks up dust the first time it lands, hard
-            // bounce or soft: only the bounce-vs-settle branch depends on
-            // velocity, the dust puff itself does not.
             if (!s.done) boom(s, Math.max(s.v, 320))
             if (s.v > 460) {
               s.v = -s.v * REST
               if (s.tumble) s.vrot *= -0.45
             } else if (s.rollStartOx) {
-              // Rolling is its own state (3), distinct from falling (1),
-              // so this vertical-fall block stops running entirely for
-              // the rest of the roll: gravity must not keep integrating
-              // s.v/s.y underneath it, or it re-triggers "impact" (and
-              // another bounce/dust burst) every subsequent frame.
+              // Own state (3): stops the fall block above re-triggering.
               s.st = 3
               s.v = 0
               s.vrot = 0
@@ -475,8 +518,6 @@
           var newOx = s.rollStartOx * (1 - eased)
           var traveled = s.ox - newOx
           s.ox = newOx
-          // Rotation proportional to distance traveled, so it reads as
-          // rolling rather than sliding.
           s.rot += traveled / Math.max(16, s.el.offsetWidth * 0.5)
           if (baseRuleEl) {
             var stoneAbsX = s.cx + s.ox
@@ -512,9 +553,6 @@
             s.ty = 0
           }
         }
-        // The rolling stone's horizontal position is fully owned by the
-        // fall-then-roll logic above until it settles; the generic
-        // pointer-parallax easing below only takes over once it does.
         if (s.rollStartOx && s.st !== 2) {
           busy = true
         } else {
@@ -528,6 +566,16 @@
           }
         }
         apply(s)
+      }
+      if (!netBuilt) {
+        var allSettled = true
+        for (i = 0; i < stones.length; i++) {
+          if (stones[i].st !== 2) {
+            allSettled = false
+            break
+          }
+        }
+        if (allSettled) buildNetwork()
       }
       ctx.clearRect(0, 0, W, H)
       if (dust.length) {
@@ -548,20 +596,83 @@
         }
         ctx.globalAlpha = 1
       }
-      for (i = 0; i < ambient.length; i++) {
-        var m = ambient[i]
-        m.x += m.vx * dt
-        m.y += m.vy * dt
-        if (m.x < -4) m.x = W + 4
-        else if (m.x > W + 4) m.x = -4
-        if (m.y < -4) m.y = H + 4
-        else if (m.y > H + 4) m.y = -4
-        ctx.globalAlpha = m.a
-        ctx.fillStyle = cDust
-        ctx.fillRect(m.x, m.y, m.sz, m.sz)
+      if (netBuilt) {
+        for (i = 0; i < netNodes.length; i++) {
+          var nd = netNodes[i]
+          if (!nd.fixed) {
+            nd.x += nd.vx * dt
+            nd.y += nd.vy * dt
+            if (nd.x < 0) nd.x = W
+            else if (nd.x > W) nd.x = 0
+            if (nd.y < 0) nd.y = H
+            else if (nd.y > H) nd.y = 0
+          }
+          var tx = 0,
+            ty = 0
+          if (px >= 0) {
+            var pdx = px - nd.x,
+              pdy = py - nd.y,
+              pd2 = pdx * pdx + pdy * pdy,
+              rad = 150
+            if (pd2 < rad * rad) {
+              var pd = Math.sqrt(pd2) || 1,
+                infl = 1 - pd / rad
+              tx = (-pdx / pd) * infl * 6
+              ty = (-pdy / pd) * infl * 6
+              nd.glow = Math.min(1, nd.glow + infl * 0.06)
+            }
+          }
+          nd.ox += (tx - nd.ox) * Math.min(1, 4 * dt)
+          nd.oy += (ty - nd.oy) * Math.min(1, 4 * dt)
+          nd.glow *= Math.exp(-2.5 * dt)
+        }
+        ctx.lineWidth = 1
+        for (i = 0; i < netEdges.length; i++) {
+          var ed = netEdges[i],
+            n1 = netNodes[ed.a],
+            n2 = netNodes[ed.b]
+          ctx.strokeStyle = 'rgba(120,170,150,' + (0.045 + Math.max(n1.glow, n2.glow) * 0.05).toFixed(3) + ')'
+          ctx.beginPath()
+          ctx.moveTo(n1.x + n1.ox, n1.y + n1.oy)
+          ctx.lineTo(n2.x + n2.ox, n2.y + n2.oy)
+          ctx.stroke()
+        }
+        for (i = 0; i < netNodes.length; i++) {
+          var nd2 = netNodes[i]
+          ctx.globalAlpha = 0.08 + nd2.glow * 0.4
+          ctx.fillStyle = cAcc
+          ctx.fillRect(nd2.x + nd2.ox - 0.6, nd2.y + nd2.oy - 0.6, 1.2, 1.2)
+        }
+        ctx.globalAlpha = 1
+        if (glowSprite) {
+          for (i = netPulses.length - 1; i >= 0; i--) {
+            var pu = netPulses[i]
+            pu.t += dt
+            if (pu.t >= pu.dur) {
+              netPulses.splice(i, 1)
+              continue
+            }
+            var pp = pu.t / pu.dur,
+              pa = netNodes[pu.a],
+              pb = netNodes[pu.b],
+              ppx = pa.x + pa.ox + (pb.x + pb.ox - pa.x - pa.ox) * pp,
+              ppy = pa.y + pa.oy + (pb.y + pb.oy - pa.y - pa.oy) * pp,
+              fade = pp < 0.5 ? pp * 2 : (1 - pp) * 2
+            ctx.globalAlpha = fade * 0.8
+            ctx.drawImage(glowSprite, ppx - 7, ppy - 7, 14, 14)
+          }
+          ctx.globalAlpha = 1
+        }
+        netAmbientT += dt
+        if (netAmbientT > nextPulseAt && netEdges.length) {
+          netAmbientT = 0
+          nextPulseAt = 1.2 + Math.random() * 1.8
+          var re = netEdges[(Math.random() * netEdges.length) | 0]
+          firePulse(re.a, re.b)
+        }
+        busy = true
       }
-      ctx.globalAlpha = 1
-      if (busy || ambient.length) raf = requestAnimationFrame(frame)
+      if (busy) raf = requestAnimationFrame(frame)
     }
     function wake() {
       if (!raf && !document.hidden) {
@@ -597,7 +708,7 @@
       clearTimeout(rt)
       rt = setTimeout(function () {
         sizeCv()
-        seedAmbient()
+        if (netBuilt) buildNetwork()
         var allDone = stones.every(function (s) {
           return s.st === 2
         })
