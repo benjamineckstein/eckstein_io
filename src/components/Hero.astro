@@ -214,39 +214,56 @@
     })
 
     // No scroll on this page, so answer the attempt instead of ignoring
-    // it. Detection runs under RM too; the physics jolt is text-only there.
+    // it. Detection runs under RM too; the physics jolt is skipped there.
+    // The once-only text is deferred (scrollPending) rather than shown or
+    // consumed if a probe arrives mid-entrance, since the line reads as
+    // "gone" if it fades in and out before there's anything to notice.
     var scrolledOnce = false,
+      scrollPending = false,
       lastScrollAt = -3000,
-      wheelAcc = 0
+      wheelAcc = 0,
+      lastWheelTickAt = 0,
+      ruleFlex = 0
+    function showScrollMsg() {
+      var msg = document.getElementById('scroll-answer')
+      if (!msg || scrolledOnce) return
+      scrolledOnce = true
+      var nav = document.querySelector('nav.links')
+      if (nav) msg.style.top = nav.getBoundingClientRect().bottom + 10 + 'px'
+      msg.textContent = msg.dataset.msg
+      msg.classList.add('on')
+      setTimeout(function () {
+        msg.classList.remove('on')
+      }, 3000)
+    }
     function scrollAnswer() {
       var now = performance.now()
       if (now - lastScrollAt < 3000) return
       lastScrollAt = now
-      var msg = document.getElementById('scroll-answer')
-      if (msg && !scrolledOnce) {
-        scrolledOnce = true
-        msg.textContent = msg.dataset.msg
-        msg.classList.add('on')
-        setTimeout(function () {
-          msg.classList.remove('on')
-        }, 3000)
-      }
+      if (RM || netBuilt) showScrollMsg()
+      else scrollPending = true
       if (RM || !netBuilt) return
       stones.forEach(function (s) {
         var sc = Math.max(1, (s.h || 234) / 234)
-        s.jolt = Math.max(s.jolt, 9)
-        s.sq = Math.max(s.sq, 0.05)
-        burst(s.cx + s.ox, s.bot, 3, 90 * sc, false, sc)
+        s.jolt = Math.max(s.jolt, 30)
+        s.sq = Math.max(s.sq, 0.14)
+        burst(s.cx + s.ox, s.bot, 7, 140 * sc, false, sc)
       })
-      fallen.rot += (Math.random() < 0.5 ? -1 : 1) * 0.05
+      fallen.rot += (Math.random() < 0.5 ? -1 : 1) * 0.16
+      ruleFlex = 6
       wake()
     }
     addEventListener(
       'wheel',
       function (e) {
         if (e.deltaY <= 0) return
+        var now = performance.now()
+        // A real gesture's ticks land close together; a gap this long
+        // means a fresh gesture, not leftover momentum from the last one.
+        if (now - lastWheelTickAt > 400) wheelAcc = 0
+        lastWheelTickAt = now
         wheelAcc += e.deltaY
-        if (wheelAcc > 50) {
+        if (wheelAcc > 18) {
           wheelAcc = 0
           scrollAnswer()
         }
@@ -662,8 +679,19 @@
             break
           }
         }
-        if (allSettled) buildNetwork()
+        if (allSettled) {
+          buildNetwork()
+          if (scrollPending) {
+            scrollPending = false
+            showScrollMsg()
+          }
+        }
       }
+      if (ruleFlex > 0.05) {
+        ruleFlex *= Math.exp(-7 * dt)
+        busy = true
+      } else if (ruleFlex) ruleFlex = 0
+      if (baseRuleEl) baseRuleEl.style.height = (3 + ruleFlex).toFixed(2) + 'px'
       ctx.clearRect(0, 0, W, H)
       if (dust.length) {
         busy = true

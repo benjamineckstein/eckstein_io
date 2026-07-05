@@ -374,17 +374,25 @@ nav.links {
 }
 
 /* The page has no scroll, so it answers the attempt instead of ignoring
-   it: a line right under the links, in normal flow so it can never
-   overlap other content the way a fixed position risked at some sizes. */
+   it: fixed to the viewport, not normal flow, since this page's whole
+   layout is tuned to exactly fill the viewport with no spare room; any
+   reserved flow space here risked pushing content past the fold on
+   untested sizes, invisible regardless of opacity. Its exact top offset
+   is set in JS from nav.links' own live position, so it also can't
+   land on top of the links the way a fixed guess at one offset did. */
 .scroll-answer {
-  flex: none;
-  margin-top: clamp(6px, 1.2vh, 14px);
+  position: fixed;
+  left: clamp(16px, 3vw, 56px);
+  right: clamp(16px, 3vw, 56px);
+  top: 80vh;
+  margin: 0;
   font-style: italic;
   color: var(--muted);
   font-size: clamp(12px, 1.1vw, 16px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.6s ease;
+  z-index: 11;
 }
 
 .scroll-answer.on {
