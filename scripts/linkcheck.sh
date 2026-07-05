@@ -7,10 +7,12 @@ cd "$(dirname "$0")/.."
 
 FILES="dist/index.html dist/en/index.html dist/impressum/index.html dist/datenschutz/index.html dist/404.html"
 
+# "|| true" keeps set -e/pipefail from killing the script when the pipeline
+# yields nothing; the -z check below reports that case explicitly.
 URLS=$(grep -hoE 'href="https://[^"]+"' $FILES \
   | sed -E 's/^href="//; s/"$//' \
   | grep -v '^https://eckstein\.io' \
-  | sort -u)
+  | sort -u || true)
 
 if [ -z "$URLS" ]; then
   echo "No external links found, something is wrong with the build."
