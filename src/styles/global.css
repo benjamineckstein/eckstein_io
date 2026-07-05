@@ -540,6 +540,31 @@ html.anim .fadein {
   }
 }
 
+/* Tall, narrow viewports (tall phones in portrait): width, not height, caps
+   the letters, so .mid's auto-centering used to leave a large dead band
+   between the tagline and the links. Grow the letters within the width
+   budget, drop the auto-centering so the block sits right under the
+   masthead, and push any leftover space to the bottom of the viewport
+   (below the links, above the footer) where slack reads as intentional
+   breathing room instead of a hole in the middle of the content. */
+@media (max-width: 480px) and (min-height: 700px) {
+  h1.rows {
+    font-size: clamp(3.25rem, 30vw, 14rem);
+  }
+
+  .mid {
+    margin: 0;
+  }
+
+  .tag {
+    margin-top: clamp(20px, 4vh, 40px);
+  }
+
+  nav.links {
+    margin-top: clamp(28px, 5vh, 56px);
+  }
+}
+
 #dust {
   position: fixed;
   inset: 0;
