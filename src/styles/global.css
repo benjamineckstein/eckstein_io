@@ -457,16 +457,35 @@ nav.links {
     display: flex;
     gap: 0;
     align-items: baseline;
-    font-size: clamp(3rem, 14vw, 40rem);
+    font-size: clamp(3rem, 19.3vw, 46rem);
   }
 
   .row + .row {
     margin-top: 0;
   }
 
+  /* One line reads as one rule: each row still draws its own underline
+     segment (the entrance script staggers them), so close the insets on
+     the touching inner edges instead of the gap showing at the K/S seam. */
+  .row:first-child::after {
+    right: 0;
+  }
+
+  .row + .row::after {
+    left: 0;
+  }
+
   nav.links {
     display: flex;
     gap: clamp(24px, 3vw, 64px);
+  }
+
+  /* The one-liner headline now dominates the block .mid centers between
+     masthead and nav; give the tagline a touch more presence to match that
+     scale (was sized for the two-line corner layout), which also eats into
+     the gap it leaves below without upsetting the centering itself. */
+  .tag {
+    font-size: clamp(14px, 1.5vw, 22px);
   }
 
   .link {
