@@ -46,7 +46,27 @@
       master = null,
       noiseBuf = null
     var scale = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25]
+    var iosUnlocked = false
+    function unlockIOSAudio() {
+      // The classic mute-switch workaround: play a ~1s silent WAV through
+      // an HTML5 audio element once, on the first real gesture. This
+      // promotes the iOS audio session to playback so WebAudio stays
+      // audible even with the ring switch on silent. Never runs on load,
+      // never autoplays: only ever called from inside a strike.
+      if (iosUnlocked) return
+      iosUnlocked = true
+      try {
+        var a = new Audio(
+          'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAAAAAA=='
+        )
+        a.setAttribute('playsinline', '')
+        a.playsInline = true
+        var p = a.play()
+        if (p && p.catch) p.catch(function () {})
+      } catch (e) {}
+    }
     function ensureAudio() {
+      unlockIOSAudio()
       if (AC) return
       var A = window.AudioContext || window.webkitAudioContext
       if (!A) return
@@ -63,10 +83,7 @@
       var d = noiseBuf.getChannelData(0)
       for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2)
     }
-    function strikeNote(freq) {
-      if (!AC) return
-      if (AC.state === 'suspended') AC.resume()
-      if (AC.state !== 'running') return
+    function playScheduled(freq) {
       var t = AC.currentTime
       var noise = AC.createBufferSource()
       noise.buffer = noiseBuf
@@ -100,8 +117,29 @@
       osc.start(t)
       osc.stop(t + 0.58)
     }
+    function strikeNote(freq) {
+      if (!AC) return
+      // Some mobile browsers (notably iOS Safari) create the context
+      // suspended even inside a gesture and need resume() to actually
+      // resolve before scheduling sound; resume() is a promise, so the
+      // note has to wait for it rather than checking state right after
+      // firing it (which desktop Chrome tolerates by resolving eagerly,
+      // masking this on desktop while staying silent on mobile).
+      if (AC.state === 'running') {
+        playScheduled(freq)
+      } else {
+        AC.resume().then(function () {
+          if (AC.state === 'running') playScheduled(freq)
+        }, function () {})
+      }
+    }
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden && AC && AC.state === 'running') AC.suspend()
+      if (!AC) return
+      if (document.hidden) {
+        if (AC.state === 'running') AC.suspend()
+      } else if (AC.state === 'suspended') {
+        AC.resume()
+      }
     })
 
     // `stones` stays null until (if) the entrance physics below sets it up;
@@ -161,7 +199,18 @@
         comboIndex = letter === comboTarget[0] ? 1 : 0
       }
     }
+    // Guards a single physical tap from firing twice (pointerdown plus a
+    // synthesized click some browsers still deliver despite the
+    // preventDefault below) without blocking legitimate fast, distinct
+    // taps the melody sequence needs.
+    var lastStrikeAt = new Array(els.length).fill(0)
     function strike(i) {
+      var now = performance.now()
+      if (now - lastStrikeAt[i] < 400) return
+      lastStrikeAt[i] = now
+      // ensureAudio()/strikeNote() must run synchronously from here, inside
+      // the real user gesture, so the browser still counts this as
+      // activated even though strikeNote's own resume chain finishes async.
       ensureAudio()
       strikeNote(scale[i])
       strikeVisual(i)
@@ -169,6 +218,10 @@
     }
     els.forEach(function (el, i) {
       el.addEventListener('pointerdown', function (e) {
+        e.preventDefault()
+        strike(i)
+      })
+      el.addEventListener('click', function (e) {
         e.preventDefault()
         strike(i)
       })
