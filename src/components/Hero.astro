@@ -269,6 +269,28 @@
     }
     palette()
 
+    // Ambient background: sparse, slow-drifting sediment behind the poster,
+    // reusing the entrance dust palette at a fraction of its opacity. Never
+    // stops (wraps at the edges instead of expiring) so the frame loop, and
+    // document.hidden pause, run forever once seeded; kept sparse and cheap
+    // to stay well under 60fps budget and never compete with the text.
+    var ambient = []
+    function seedAmbient() {
+      var n = Math.max(6, Math.min(28, Math.round((W * H) / 130000)))
+      ambient = []
+      for (var i = 0; i < n; i++) {
+        ambient.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 3,
+          vy: -2 - Math.random() * 3,
+          sz: 0.6 + Math.random() * 1.1,
+          a: 0.035 + Math.random() * 0.045,
+        })
+      }
+    }
+    seedAmbient()
+
     var delays = [0, 90, 180, 430, 520, 610, 700, 790]
     stones = els.map(function (el, i) {
       return {
@@ -526,7 +548,20 @@
         }
         ctx.globalAlpha = 1
       }
-      if (busy) raf = requestAnimationFrame(frame)
+      for (i = 0; i < ambient.length; i++) {
+        var m = ambient[i]
+        m.x += m.vx * dt
+        m.y += m.vy * dt
+        if (m.x < -4) m.x = W + 4
+        else if (m.x > W + 4) m.x = -4
+        if (m.y < -4) m.y = H + 4
+        else if (m.y > H + 4) m.y = -4
+        ctx.globalAlpha = m.a
+        ctx.fillStyle = cDust
+        ctx.fillRect(m.x, m.y, m.sz, m.sz)
+      }
+      ctx.globalAlpha = 1
+      if (busy || ambient.length) raf = requestAnimationFrame(frame)
     }
     function wake() {
       if (!raf && !document.hidden) {
@@ -562,6 +597,7 @@
       clearTimeout(rt)
       rt = setTimeout(function () {
         sizeCv()
+        seedAmbient()
         var allDone = stones.every(function (s) {
           return s.st === 2
         })
