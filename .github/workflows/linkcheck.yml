@@ -1,9 +1,6 @@
 name: Link check
 
 on:
-  schedule:
-    # Monthly, on the 3rd at 06:17 UTC.
-    - cron: "17 6 3 * *"
   workflow_dispatch:
 
 permissions:

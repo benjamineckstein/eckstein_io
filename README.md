@@ -12,6 +12,13 @@ the cornerstone interaction: hold the 12px square top left to see the baseline g
 click reveals a fourth, hidden dictionary sense. A machine layer (`/llms.txt`, `/benjamin.json`,
 `/benjamin.vcf`, JSON-LD) serves visiting agents.
 
+## Status
+
+Live at https://eckstein.io on GitHub Pages. The apex is the primary domain, `www` redirects
+to it, HTTPS is enforced. Every push to `main` deploys automatically via GitHub Actions, with
+a page-weight gate in the pipeline. The external link check runs on demand via workflow
+dispatch, there are no scheduled jobs.
+
 ## Weight budget
 
 The whole point is weight. A page view is the HTML document (styles and script inlined), two
@@ -48,19 +55,3 @@ executed at build time in `src/lib/site.ts`, falls back to "dev").
   slides and recordings.
 - Mail on the domain (`mail@eckstein.io` or `post@eckstein.io`) once MX hosting is decided.
   Until then, contact stays on benjamin@codewithagents.de.
-
-## DNS cutover checklist (GitHub Pages)
-
-1. Repo settings: Pages, source "GitHub Actions". The deploy workflow passes
-   `enablement: true` to configure-pages, so the first run can also enable this itself.
-2. Apex `eckstein.io`: A records to 185.199.108.153, 185.199.109.153, 185.199.110.153,
-   185.199.111.153 and AAAA records to 2606:50c0:8000::153, 2606:50c0:8001::153,
-   2606:50c0:8002::153, 2606:50c0:8003::153.
-3. `www.eckstein.io`: CNAME to `benjamineckstein.github.io`.
-4. Repo settings: Pages custom domain `eckstein.io`, wait for the certificate, then enforce
-   HTTPS. This settings entry is authoritative: Actions-based deploys ignore `public/CNAME`,
-   the file is only a safety net for a hypothetical branch-based deploy.
-5. After cutover: verify canonical URLs resolve, add the property in Google Search Console,
-   submit the sitemap, let the IndexNow step in the deploy workflow ping Bing.
-6. Verify nothing still depends on the old 301 from eckstein.io to codewithagents.de: check
-   old inbound links, mail signatures and profiles that used the redirect.
