@@ -45,8 +45,8 @@ const html = `<!doctype html>
   <div class="rule"></div>
   <ol class="senses">
     <li><b>1.</b> Stein an der Ecke eines Bauwerks</li>
-    <li><b>2.</b> <i>⟨übertragen⟩</i> Grundlage, auf der alles Weitere aufbaut</li>
-    <li><b>3.</b> <i>⟨hier⟩</i> Benjamin Eckstein, Agentic Engineer</li>
+    <li><b>2.</b> <i>‹übertragen›</i> Grundlage, auf der alles Weitere aufbaut</li>
+    <li><b>3.</b> <i>‹hier›</i> Benjamin Eckstein, Agentic Engineer</li>
   </ol>
   <p class="domain">eckstein.io</p>
 </body>

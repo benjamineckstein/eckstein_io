@@ -8,8 +8,8 @@ Built with Astro, static output, deployed to GitHub Pages.
 There is no framework on the client, no tracking, no cookies and no external request of any
 kind at runtime. One self-hosted serif (Literata, latin subset, 400 and 700), one hand-written
 stylesheet on a strict 28px baseline grid, and one small inline script for the theme toggle and
-the cornerstone interaction: hold the 12px square top left to see the baseline grid, click it
-short to open the first public commit. A machine layer (`/llms.txt`, `/benjamin.json`,
+the cornerstone interaction: hold the 12px square top left to see the baseline grid; a short
+click opens the first public commit. A machine layer (`/llms.txt`, `/benjamin.json`,
 `/benjamin.vcf`, JSON-LD) serves visiting agents.
 
 ## Weight budget
