@@ -1,7 +1,9 @@
 // Page weight gate for eckstein.io.
 // Sums everything a first view of a page needs: the HTML document
-// (CSS and JS are inlined), any emitted _astro assets, both woff2
-// fonts and the favicon. Fails hard over LIMIT_KB, warns over TARGET_KB.
+// (CSS and JS are inlined), any emitted _astro assets, every woff2
+// font and the favicon. The hard gate is on raw bytes (LIMIT_KB);
+// the target is judged on transfer bytes (TARGET_KB), since GitHub
+// Pages serves text assets compressed and woff2 already is.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
@@ -19,8 +21,14 @@ function asset(path) {
   return { path, raw, transfer }
 }
 
-// Shared assets fetched by every page.
-const shared = ['favicon.svg', 'fonts/literata-latin-400.woff2', 'fonts/literata-latin-700.woff2']
+// Shared assets fetched by every page. The font list is derived from the
+// build output, so a newly added font file cannot slip past the gate.
+const shared = ['favicon.svg']
+if (existsSync(join(dist, 'fonts'))) {
+  for (const f of readdirSync(join(dist, 'fonts'))) {
+    if (f.endsWith('.woff2')) shared.push(join('fonts', f))
+  }
+}
 if (existsSync(join(dist, '_astro'))) {
   for (const f of readdirSync(join(dist, '_astro'))) shared.push(join('_astro', f))
 }
@@ -38,10 +46,8 @@ for (const page of pages) {
   for (const a of assets) {
     console.log(`  ${kb(a.raw).padStart(6)} kB raw  ${kb(a.transfer).padStart(6)} kB transfer  ${a.path}`)
   }
-  console.log(`  total: ${kb(raw)} kB raw, ${kb(transfer)} kB transfer (target ${TARGET_KB} kB, limit ${LIMIT_KB} kB raw)`)
+  console.log(`  total: ${kb(raw)} kB raw, ${kb(transfer)} kB transfer (target ${TARGET_KB} kB transfer, limit ${LIMIT_KB} kB raw)`)
 
-  // Hard gate on raw bytes; the 50 kB target is judged on transfer bytes,
-  // since GitHub Pages serves text assets compressed and woff2 already is.
   if (raw > LIMIT_KB * 1024) {
     console.error(`  FAIL: ${kb(raw)} kB raw exceeds the ${LIMIT_KB} kB limit`)
     failed = true

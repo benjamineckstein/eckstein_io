@@ -59,6 +59,7 @@
 
 body {
   font-family: 'Literata', Georgia, 'Times New Roman', serif;
+  font-synthesis: none;
   font-size: 1rem;
   line-height: var(--baseline);
   background: var(--paper);
@@ -66,6 +67,7 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 ::selection {
@@ -83,9 +85,13 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-/* Baseline grid overlay, shown while the cornerstone is held. */
+/* Baseline grid overlay, shown while the cornerstone is held.
+   Absolute, not fixed: it spans the whole document (body is the containing
+   block) and scrolls with the text, so the lattice stays truthful on long
+   pages. The 21px offset moves the hairlines from the line-box top onto the
+   type baseline: 2px half-leading plus 19px Literata ascent at 1rem. */
 .grid-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 10;
   pointer-events: none;
@@ -93,6 +99,7 @@ button:focus-visible {
   transition: opacity 0.35s ease;
   background-image: linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px 100%);
   background-size: 100% var(--baseline);
+  background-position-y: 21px;
 }
 
 .grid-overlay.on {
@@ -105,10 +112,10 @@ button:focus-visible {
   }
 }
 
-/* The cornerstone: 12px square, top left. */
+/* The cornerstone: 12px square, top left, centered on the first hairline (y 21px). */
 .cornerstone {
   position: fixed;
-  top: 1.5rem;
+  top: 15px;
   left: 1.5rem;
   width: 12px;
   height: 12px;
@@ -156,6 +163,7 @@ button:focus-visible {
 }
 
 .theme-toggle {
+  position: relative;
   width: 14px;
   height: 14px;
   border: 1px solid var(--ink);
@@ -164,9 +172,17 @@ button:focus-visible {
   cursor: pointer;
 }
 
-/* The dictionary entry. */
+/* Same trick as the cornerstone: a 38px effective hit target on a 14px visual. */
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+/* The dictionary entry. The footer follows the content in flow (no stretch),
+   so it stays on the baseline grid; tall screens get blank paper below. */
 main {
-  flex: 1 0 auto;
+  flex: none;
   width: 100%;
   max-width: 40rem;
   margin-inline: auto;
@@ -183,10 +199,14 @@ main {
 .headword .article {
   font-weight: 400;
   font-size: 1.375rem;
+  line-height: 1;
   color: var(--muted);
 }
 
+/* Literata lacks ʃ, ɪ and the combining inverted breve, so the IPA line
+   renders in one consistent fallback face instead of a per-glyph mix. */
 .pron {
+  font-family: Georgia, 'Times New Roman', serif;
   color: var(--muted);
 }
 
@@ -247,7 +267,7 @@ main {
 .xrefs li {
   display: flex;
   justify-content: space-between;
-  gap: 0.5rem 1.5rem;
+  gap: 0 1.5rem;
   flex-wrap: wrap;
 }
 
@@ -325,4 +345,38 @@ main {
 
 .legal .back:hover {
   color: var(--accent);
+}
+
+/* Narrow viewports: compact the entry head. Pronunciation and word class share
+   one line, the Worttrennung row goes (the headword middot already shows the
+   division), and xref notes follow their link inline instead of space-between. */
+@media (max-width: 26rem) {
+  .pron,
+  .grammar {
+    display: inline;
+  }
+
+  .pron + .grammar::before {
+    content: ' · ';
+  }
+
+  .entry-meta div:first-child {
+    display: none;
+  }
+
+  .xrefs li {
+    display: block;
+  }
+
+  .xrefs .note::before {
+    content: ' · ';
+  }
+
+  /* Inline boxes in a different face (Georgia IPA) or size (grammar, notes)
+     must not grow their line box past the 28px strut, or the grid drifts. */
+  .pron,
+  .grammar,
+  .xrefs .note {
+    line-height: 1;
+  }
 }

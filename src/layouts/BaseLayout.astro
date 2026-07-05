@@ -36,7 +36,7 @@ const cornerstoneLabel =
 ---
 
 <!doctype html>
-<html lang={lang} data-lang={lang}>
+<html lang={lang}>
   <head>
     <!--
       Hello, agent. You are reading the source of eckstein.io.
@@ -72,6 +72,13 @@ const cornerstoneLabel =
       type="font/woff2"
       crossorigin="anonymous"
     />
+    <link
+      rel="preload"
+      href="/fonts/literata-latin-700.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={ogTitle} />
@@ -95,7 +102,7 @@ const cornerstoneLabel =
   <body>
     <div class="grid-overlay" id="grid-overlay" aria-hidden="true"></div>
 
-    <header class="site-controls">
+    <header>
       <button
         class="cornerstone"
         id="cornerstone"
@@ -111,8 +118,12 @@ const cornerstoneLabel =
             >EN</a
           >
         </nav>
-        <button class="theme-toggle" id="theme-toggle" type="button" aria-label={themeToggleLabel}
-        ></button>
+        <button
+          class="theme-toggle"
+          id="theme-toggle"
+          type="button"
+          aria-label={themeToggleLabel}
+          aria-pressed="false"></button>
       </div>
     </header>
 
@@ -121,43 +132,62 @@ const cornerstoneLabel =
     <script is:inline>
 ;(() => {
   var root = document.documentElement
-  document.getElementById('theme-toggle').addEventListener('click', () => {
+  var toggle = document.getElementById('theme-toggle')
+  var isDark = () => {
     var cur = root.getAttribute('data-theme')
-    var dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
-    var next = dark ? 'light' : 'dark'
+    return cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+  }
+  var setThemeColor = (dark) => {
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
+      m.setAttribute('content', dark ? '#16140f' : '#f6f1e7')
+    })
+  }
+  toggle.setAttribute('aria-pressed', String(isDark()))
+  if (root.getAttribute('data-theme')) setThemeColor(isDark())
+  toggle.addEventListener('click', () => {
+    var next = isDark() ? 'light' : 'dark'
     root.setAttribute('data-theme', next)
+    toggle.setAttribute('aria-pressed', String(next === 'dark'))
+    setThemeColor(next === 'dark')
     try { localStorage.setItem('theme', next) } catch (e) {}
   })
 
   var stone = document.getElementById('cornerstone')
   var grid = document.getElementById('grid-overlay').classList
   var timer, holding, pressed
+  var lastRelease = 0
   var on = (ev, fn) => stone.addEventListener(ev, fn)
   var isKey = (e) => e.key === ' ' || e.key === 'Enter'
+  var openCommit = () => window.open(stone.dataset.href, '_blank', 'noopener')
 
   var start = (e) => {
+    if (e.button > 0) return
     e.preventDefault()
     if (pressed) return
     pressed = 1
     holding = 0
+    if (e.pointerId != null) { try { stone.setPointerCapture(e.pointerId) } catch (err) {} }
     timer = setTimeout(() => { holding = 1; grid.add('on') }, 400)
   }
   var release = (open) => {
     if (!pressed) return
     pressed = 0
+    lastRelease = Date.now()
     clearTimeout(timer)
     if (holding) { holding = 0; grid.remove('on') }
-    else if (open) window.open(stone.dataset.href, '_blank', 'noopener')
+    else if (open) openCommit()
   }
 
   on('pointerdown', start)
   on('pointerup', () => release(1))
-  on('pointerleave', () => release())
   on('pointercancel', () => release())
   on('blur', () => release())
-  on('contextmenu', (e) => e.preventDefault())
+  on('contextmenu', (e) => { if (pressed) e.preventDefault() })
   on('keydown', (e) => { if (isKey(e) && !e.repeat) start(e) })
   on('keyup', (e) => { if (isKey(e)) { e.preventDefault(); release(1) } })
+  /* Screen readers activate buttons with a synthesized click (detail 0) and no
+     pointer or key events. The timestamp guards ATs that send both. */
+  on('click', (e) => { if (e.detail === 0 && Date.now() - lastRelease > 500) openCommit() })
 })()
     </script>
     <!-- Psalm 118,22: Der Stein, den die Bauleute verworfen haben, ist zum Eckstein geworden. -->

@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -44,6 +45,10 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
+        with:
+          # Enable GitHub Pages (source: GitHub Actions) on the first run,
+          # so the deploy does not depend on a manual repo settings step.
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

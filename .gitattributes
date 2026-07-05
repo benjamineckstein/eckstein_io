@@ -1,0 +1,2 @@
+# RFC 6350 mandates CRLF line endings for vCards; keep git from normalizing them.
+*.vcf text eol=crlf

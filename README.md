@@ -17,10 +17,17 @@ short to open the first public commit. A machine layer (`/llms.txt`, `/benjamin.
 The whole point is weight. A page view is the HTML document (styles and script inlined), two
 woff2 fonts and the favicon.
 
-- Target: under 50 kB total.
+- Target: under 50 kB total transfer (what actually goes over the wire; GitHub Pages serves
+  text assets compressed, woff2 already is).
 - Hard CI gate: 75 kB raw, enforced by `scripts/bundle-gate.mjs` on every deploy.
 
 Run `pnpm build && pnpm bundle-gate` to see the current numbers.
+
+Accepted trade-off: the entry ships roman 400 and 700 only. Usage labels a dictionary would
+set in italic stay roman (muted, in ‹ › guillemets); the Literata italic subset would cost
+another ~20 kB and push the page over the target. `font-synthesis: none` guarantees no faux
+italic or bold ever renders. The IPA line is pinned to Georgia, since Literata lacks three of
+its glyphs.
 
 ## Development
 
@@ -44,13 +51,16 @@ executed at build time in `src/lib/site.ts`, falls back to "dev").
 
 ## DNS cutover checklist (GitHub Pages)
 
-1. Apex `eckstein.io`: A records to 185.199.108.153, 185.199.109.153, 185.199.110.153,
+1. Repo settings: Pages, source "GitHub Actions". The deploy workflow passes
+   `enablement: true` to configure-pages, so the first run can also enable this itself.
+2. Apex `eckstein.io`: A records to 185.199.108.153, 185.199.109.153, 185.199.110.153,
    185.199.111.153 and AAAA records to 2606:50c0:8000::153, 2606:50c0:8001::153,
    2606:50c0:8002::153, 2606:50c0:8003::153.
-2. `www.eckstein.io`: CNAME to `benjamineckstein.github.io`.
-3. Repo settings: Pages custom domain `eckstein.io` (matches `public/CNAME`), wait for the
-   certificate, then enforce HTTPS.
-4. After cutover: verify canonical URLs resolve, add the property in Google Search Console,
+3. `www.eckstein.io`: CNAME to `benjamineckstein.github.io`.
+4. Repo settings: Pages custom domain `eckstein.io`, wait for the certificate, then enforce
+   HTTPS. This settings entry is authoritative: Actions-based deploys ignore `public/CNAME`,
+   the file is only a safety net for a hypothetical branch-based deploy.
+5. After cutover: verify canonical URLs resolve, add the property in Google Search Console,
    submit the sitemap, let the IndexNow step in the deploy workflow ping Bing.
-5. Verify nothing still depends on the old 301 from eckstein.io to codewithagents.de: check
+6. Verify nothing still depends on the old 301 from eckstein.io to codewithagents.de: check
    old inbound links, mail signatures and profiles that used the redirect.
