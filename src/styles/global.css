@@ -439,38 +439,25 @@ nav.links {
   transform: translateX(0.35em) scale(0.995);
 }
 
-/* Wide viewports (>=1200px): the numbered links become a second column
-   beside the headline instead of a full-width row, for two reasons at
-   once. First, it uses the space the letters do not fill instead of
-   leaving it dead. Second, and more importantly, a link row stretched
-   across 1800px no longer reads as one line, the label and its hint sit
-   so far apart the eye has to hunt for the connection; capping the
-   column width keeps them close enough to read together. */
-@media (min-width: 1200px) {
-  .entry {
-    flex-direction: row;
-    align-items: center;
-    gap: clamp(24px, 4vw, 64px);
-  }
-
-  .mid {
-    margin: 0;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
+/* Wide viewports (>=1400px): the numbered links become one row of three
+   columns at the bottom of the poster instead of stacking full width.
+   A stretched full-width row stops reading as one line at this size,
+   label and hint sit too far apart; three narrow columns keep each
+   link readable while still using the width. */
+@media (min-width: 1400px) {
   nav.links {
-    flex: 0 0 clamp(300px, 26vw, 400px);
-    align-self: center;
-    margin-top: 0;
+    display: flex;
+    gap: clamp(24px, 3vw, 64px);
   }
 
   .link {
-    font-size: clamp(15px, 0.95vw, 19px);
+    flex: 1 1 0;
+    grid-template-columns: 2.4em 1fr;
   }
 
   .hint {
-    font-size: clamp(11px, 0.7vw, 14px);
+    grid-column: 2;
+    text-align: left;
   }
 }
 
