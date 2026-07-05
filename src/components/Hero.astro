@@ -37,14 +37,14 @@
     var els = [].slice.call(document.querySelectorAll('.st'))
     if (!els.length) return
 
-    // Lithophone: gesture-gated WebAudio, no files, works under RM too.
+    // Gesture-gated WebAudio lithophone, works under RM.
     var AC = null,
       master = null,
       noiseBuf = null
     var scale = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25]
     var iosUnlocked = false
     function unlockIOSAudio() {
-      // iOS mute-switch workaround: a silent WAV once, on first gesture.
+      // iOS silent-switch fix: one WAV, first gesture.
       if (iosUnlocked) return
       iosUnlocked = true
       try {
@@ -111,7 +111,7 @@
     }
     function strikeNote(freq) {
       if (!AC) return
-      // Mobile browsers need resume() to resolve before scheduling sound.
+      // Mobile needs resume() resolved before scheduling.
       if (AC.state === 'running') {
         playScheduled(freq)
       } else {
@@ -142,10 +142,10 @@
         void el.offsetWidth
         el.classList.add('struck')
       }
-      // Sound and light as one event (hoisted, safe no-op under RM).
+      // Sound + light together (hoisted, no-op under RM).
       pulseFromLetter(i)
     }
-    // Hidden melody: strike E-C-K-S-T-E-I-N in order (either E counts).
+    // Hidden melody: E-C-K-S-T-E-I-N in order.
     var comboTarget = ['E', 'C', 'K', 'S', 'T', 'E', 'I', 'N']
     var comboIndex = 0
     function comboReward() {
@@ -184,7 +184,7 @@
         comboIndex = letter === comboTarget[0] ? 1 : 0
       }
     }
-    // Debounce so one tap (pointerdown + a synthesized click) can't double-strike.
+    // Debounce: avoid pointerdown + synth-click double-fire.
     var lastStrikeAt = new Array(els.length).fill(0)
     function strike(i) {
       var now = performance.now()
@@ -213,7 +213,7 @@
       })
     })
 
-    // Reduced motion: static constellation only, then skip the rest below.
+    // RM: static constellation, then skip the rest.
     if (RM) {
       var rmCv = document.getElementById('dust')
       if (rmCv instanceof HTMLCanvasElement) {
@@ -278,11 +278,10 @@
     }
     palette()
 
-    // Letters double as fixed anchor nodes (sampled on settle/resize, never
-    // per frame); sparse free nodes fill the rest; thin edges connect near
-    // nodes; pulses travel them, including one per strike (above).
-    var netNodes = [],
-      netEdges = [],
+    // Letters are anchor nodes; free nodes/edges fill in; pulses travel
+    // per strike.
+    var nn = [],
+      ne = [],
       netPulses = [],
       netBuilt = false,
       netAmbientT = 0,
@@ -308,32 +307,44 @@
         anchors.push({ x: r.left + r.width / 2, y: r.top + r.height / 2, el: el })
         if (perLetter > 1) anchors.push({ x: r.left + r.width * 0.2, y: r.top + r.height * 0.75, el: el })
       })
-      // Enough free nodes to read as a full-page network, not a lucky
-      // cluster: too few and most land too far apart to draw an edge.
+      // Enough nodes to read as a full page, not luck.
       var cap = W < 768 ? 60 : 240
       var freeN = Math.max(0, cap - anchors.length)
-      netNodes = anchors.map(function (a) {
-        return { x: a.x, y: a.y, ox: 0, oy: 0, fixed: true, el: a.el, vx: 0, vy: 0, glow: 0 }
+      nn = anchors.map(function (a) {
+        return { x: a.x, y: a.y, ox: 0, oy: 0, fx: true, el: a.el, vx: 0, vy: 0, glow: 0 }
       })
+      // Grid-jittered, so density stays even.
+      var gCols = Math.max(1, Math.round(Math.sqrt((freeN * W) / H)))
+      var cw = W / gCols,
+        ch = H / Math.max(1, Math.ceil(freeN / gCols))
       for (var i = 0; i < freeN; i++) {
-        netNodes.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
+        nn.push({
+          x: ((i % gCols) + 0.15 + Math.random() * 0.7) * cw,
+          y: (((i / gCols) | 0) + 0.15 + Math.random() * 0.7) * ch,
           ox: 0,
           oy: 0,
-          fixed: false,
+          fx: false,
           vx: (Math.random() - 0.5) * 2.2,
           vy: (Math.random() - 0.5) * 2.2,
           glow: 0,
         })
       }
-      var maxD = Math.min(W, H) * 0.19
-      netEdges = []
-      for (var a2 = 0; a2 < netNodes.length; a2++) {
-        for (var b2 = a2 + 1; b2 < netNodes.length; b2++) {
-          var dx = netNodes[a2].x - netNodes[b2].x,
-            dy = netNodes[a2].y - netNodes[b2].y
-          if (dx * dx + dy * dy < maxD * maxD) netEdges.push({ a: a2, b: b2 })
+      // Cap edges per node; skip anchor-anchor pairs, letters connect out.
+      var maxD = Math.min(W, H) * 0.19,
+        maxDeg = 4,
+        deg = new Array(nn.length).fill(0)
+      ne = []
+      for (var a2 = 0; a2 < nn.length; a2++) {
+        for (var b2 = a2 + 1; b2 < nn.length; b2++) {
+          if (nn[a2].fx && nn[b2].fx) continue
+          if (deg[a2] >= maxDeg || deg[b2] >= maxDeg) continue
+          var dx = nn[a2].x - nn[b2].x,
+            dy = nn[a2].y - nn[b2].y
+          if (dx * dx + dy * dy < maxD * maxD) {
+            ne.push({ a: a2, b: b2 })
+            deg[a2]++
+            deg[b2]++
+          }
         }
       }
       netBuilt = true
@@ -343,10 +354,10 @@
     }
     function pulseFromLetter(i) {
       if (!netBuilt || !els[i]) return
-      for (var e = 0; e < netEdges.length; e++) {
-        var ed = netEdges[e]
-        if (netNodes[ed.a].el === els[i]) firePulse(ed.a, ed.b)
-        else if (netNodes[ed.b].el === els[i]) firePulse(ed.b, ed.a)
+      for (var e = 0; e < ne.length; e++) {
+        var ed = ne[e]
+        if (nn[ed.a].el === els[i]) firePulse(ed.a, ed.b)
+        else if (nn[ed.b].el === els[i]) firePulse(ed.b, ed.a)
       }
     }
 
@@ -440,12 +451,12 @@
       s.y = -(s.bot + H * 0.22 + Math.random() * 90)
       apply(s)
     })
-    // The stone falls left, near "E", then rolls to its resting corner.
+    // Falls near "E", then rolls to its resting corner.
     var baseRuleEl = document.querySelector('.base-rule')
     var leftRef = stones[0]
     if (leftRef) {
-      fallen.rollStartOx = leftRef.cx - fallen.cx
-      fallen.ox = fallen.rollStartOx
+      fallen.rsx = leftRef.cx - fallen.cx
+      fallen.ox = fallen.rsx
       apply(fallen)
     }
     if (baseRuleEl) baseRuleEl.style.transform = 'scaleX(0)'
@@ -467,8 +478,7 @@
       }
     }
     function boom(s, v) {
-      // Scale the splash to the stone's own height, so it still reads next
-      // to the much taller one-liner letters instead of vanishing as a speck.
+      // Scale splash to the stone's height, visible at any size.
       var scale = Math.max(1, (s.h || 234) / 234)
       var n = Math.round(Math.min(26, 3 + (v - 300) / 110) * Math.min(1.6, scale))
       burst(s.cx + s.ox, s.bot, s.big ? 26 : n, (s.big ? 760 : Math.min(760, v * 0.32)) * scale, s.big, scale)
@@ -506,8 +516,8 @@
             if (s.v > 460) {
               s.v = -s.v * REST
               if (s.tumble) s.vrot *= -0.45
-            } else if (s.rollStartOx) {
-              // Own state (3): stops the fall block above re-triggering.
+            } else if (s.rsx) {
+              // State 3 stops the fall block from re-triggering.
               s.st = 3
               s.v = 0
               s.vrot = 0
@@ -523,7 +533,7 @@
           var rollDur = 0.85
           var rp = Math.min(1, s.rollT / rollDur)
           var eased = 1 - Math.pow(1 - rp, 3)
-          var newOx = s.rollStartOx * (1 - eased)
+          var newOx = s.rsx * (1 - eased)
           var traveled = s.ox - newOx
           s.ox = newOx
           s.rot += traveled / Math.max(16, s.el.offsetWidth * 0.5)
@@ -561,7 +571,7 @@
             s.ty = 0
           }
         }
-        if (s.rollStartOx && s.st !== 2) {
+        if (s.rsx && s.st !== 2) {
           busy = true
         } else {
           var dx = s.tx - s.ox,
@@ -605,9 +615,9 @@
         ctx.globalAlpha = 1
       }
       if (netBuilt) {
-        for (i = 0; i < netNodes.length; i++) {
-          var nd = netNodes[i]
-          if (!nd.fixed) {
+        for (i = 0; i < nn.length; i++) {
+          var nd = nn[i]
+          if (!nd.fx) {
             nd.x += nd.vx * dt
             nd.y += nd.vy * dt
             if (nd.x < 0) nd.x = W
@@ -635,18 +645,18 @@
           nd.glow *= Math.exp(-2.5 * dt)
         }
         ctx.lineWidth = 1
-        for (i = 0; i < netEdges.length; i++) {
-          var ed = netEdges[i],
-            n1 = netNodes[ed.a],
-            n2 = netNodes[ed.b]
+        for (i = 0; i < ne.length; i++) {
+          var ed = ne[i],
+            n1 = nn[ed.a],
+            n2 = nn[ed.b]
           ctx.strokeStyle = 'rgba(120,170,150,' + (0.09 + Math.max(n1.glow, n2.glow) * 0.07).toFixed(3) + ')'
           ctx.beginPath()
           ctx.moveTo(n1.x + n1.ox, n1.y + n1.oy)
           ctx.lineTo(n2.x + n2.ox, n2.y + n2.oy)
           ctx.stroke()
         }
-        for (i = 0; i < netNodes.length; i++) {
-          var nd2 = netNodes[i]
+        for (i = 0; i < nn.length; i++) {
+          var nd2 = nn[i]
           ctx.globalAlpha = 0.15 + nd2.glow * 0.4
           ctx.fillStyle = cAcc
           ctx.fillRect(nd2.x + nd2.ox - 0.6, nd2.y + nd2.oy - 0.6, 1.2, 1.2)
@@ -661,8 +671,8 @@
               continue
             }
             var pp = pu.t / pu.dur,
-              pa = netNodes[pu.a],
-              pb = netNodes[pu.b],
+              pa = nn[pu.a],
+              pb = nn[pu.b],
               ppx = pa.x + pa.ox + (pb.x + pb.ox - pa.x - pa.ox) * pp,
               ppy = pa.y + pa.oy + (pb.y + pb.oy - pa.y - pa.oy) * pp,
               fade = pp < 0.5 ? pp * 2 : (1 - pp) * 2
@@ -672,10 +682,10 @@
           ctx.globalAlpha = 1
         }
         netAmbientT += dt
-        if (netAmbientT > nextPulseAt && netEdges.length) {
+        if (netAmbientT > nextPulseAt && ne.length) {
           netAmbientT = 0
           nextPulseAt = 1.2 + Math.random() * 1.8
-          var re = netEdges[(Math.random() * netEdges.length) | 0]
+          var re = ne[(Math.random() * ne.length) | 0]
           firePulse(re.a, re.b)
         }
         busy = true
