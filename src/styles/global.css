@@ -261,7 +261,7 @@ button:focus-visible {
 }
 
 h1.rows {
-  font-size: clamp(2.75rem, min(23vw, 30vh), 30rem);
+  font-size: clamp(2.75rem, min(25vw, 31vh), 34rem);
   width: fit-content;
   max-width: 100%;
   font-weight: 900;
@@ -335,7 +335,7 @@ html.anim .row.set::after {
 }
 
 .tag {
-  margin-top: clamp(16px, 3vh, 34px);
+  margin-top: clamp(26px, 3vh, 34px);
   font-style: italic;
   color: var(--muted);
   font-size: clamp(13px, 1.25vw, 19px);
@@ -450,7 +450,7 @@ nav.links {
   .entry {
     flex-direction: row;
     align-items: center;
-    gap: clamp(32px, 6vw, 96px);
+    gap: clamp(24px, 4vw, 64px);
   }
 
   .mid {
@@ -460,7 +460,7 @@ nav.links {
   }
 
   nav.links {
-    flex: 0 0 clamp(320px, 30vw, 440px);
+    flex: 0 0 clamp(300px, 26vw, 400px);
     align-self: center;
     margin-top: 0;
   }
@@ -555,7 +555,7 @@ html.anim .fadein {
   }
 
   h1.rows {
-    font-size: clamp(2.25rem, min(20vw, 18vh), 20rem);
+    font-size: clamp(2.25rem, min(22vw, 20vh), 22rem);
   }
 
   .entry {
@@ -584,7 +584,7 @@ html.anim .fadein {
    breathing room instead of a hole in the middle of the content. */
 @media (max-width: 480px) and (min-height: 700px) {
   h1.rows {
-    font-size: clamp(3.25rem, 30vw, 14rem);
+    font-size: clamp(3.25rem, 33vw, 15rem);
   }
 
   .mid {
