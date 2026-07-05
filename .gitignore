@@ -17,3 +17,6 @@ pnpm-debug.log*
 # env
 .env
 .env.*
+
+# local verification screenshots
+screenshots/
