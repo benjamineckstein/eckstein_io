@@ -307,6 +307,21 @@
       s.y = -(s.bot + H * 0.22 + Math.random() * 90)
       apply(s)
     })
+    // Experiment: the fallen stone breaks off from the ECK notch (the gap
+    // to the right of the shorter first row, the corner it was rejected
+    // from) instead of dropping in from above the viewport, and tumbles
+    // down-right from there to its resting place. Uses the "K" stone's
+    // pre-transform measurement (from measure(), above) as the notch
+    // reference, since the row's own getBoundingClientRect() would now
+    // reflect its off-screen entrance start, not its resting position.
+    var notch = stones[2]
+    if (notch) {
+      fallen.notchY = notch.bot - fallen.bot - fallen.el.offsetHeight * 0.3
+      fallen.notchOx = notch.cx + notch.el.offsetWidth * 0.6 - fallen.cx
+      fallen.y = fallen.notchY
+      fallen.ox = fallen.notchOx
+      apply(fallen)
+    }
     doc.classList.add('anim')
 
     function burst(x, y, n, pw, acc) {
@@ -392,13 +407,22 @@
             s.ty = 0
           }
         }
-        var dx = s.tx - s.ox,
-          dy = s.ty - s.oy
-        if (Math.abs(dx) > 0.04 || Math.abs(dy) > 0.04) {
-          var k = Math.min(1, 5.5 * dt)
-          s.ox += dx * k
-          s.oy += dy * k
+        // The notch stone drifts from its ECK-corner start toward its
+        // resting horizontal position while it falls; the generic
+        // pointer-parallax easing below only takes over once it settles.
+        if (s.notchOx && s.st !== 2) {
+          var prog = s.notchY ? Math.max(0, Math.min(1, s.y / s.notchY)) : 0
+          s.ox = s.notchOx * prog
           busy = true
+        } else {
+          var dx = s.tx - s.ox,
+            dy = s.ty - s.oy
+          if (Math.abs(dx) > 0.04 || Math.abs(dy) > 0.04) {
+            var k = Math.min(1, 5.5 * dt)
+            s.ox += dx * k
+            s.oy += dy * k
+            busy = true
+          }
         }
         apply(s)
       }
