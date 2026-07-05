@@ -360,21 +360,19 @@
       s.y = -(s.bot + H * 0.22 + Math.random() * 90)
       apply(s)
     })
-    // Experiment: the fallen stone breaks off from the ECK notch (the gap
-    // to the right of the shorter first row, the corner it was rejected
-    // from) instead of dropping in from above the viewport, and tumbles
-    // down-right from there to its resting place. Uses the "K" stone's
-    // pre-transform measurement (from measure(), above) as the notch
-    // reference, since the row's own getBoundingClientRect() would now
-    // reflect its off-screen entrance start, not its resting position.
-    var notch = stones[2]
-    if (notch) {
-      fallen.notchY = notch.bot - fallen.bot - fallen.el.offsetHeight * 0.3
-      fallen.notchOx = notch.cx + notch.el.offsetWidth * 0.6 - fallen.cx
-      fallen.y = fallen.notchY
-      fallen.ox = fallen.notchOx
+    // The rolling stone: falls straight down on the left, near the first
+    // letter, same as the other stones; once it lands it rolls along the
+    // floor to its resting corner instead of settling in place. Uses the
+    // "E" stone's pre-transform measurement (from measure(), above) for
+    // the horizontal start, since it is otherwise about to fall too.
+    var baseRuleEl = document.querySelector('.base-rule')
+    var leftRef = stones[0]
+    if (leftRef) {
+      fallen.rollStartOx = leftRef.cx - fallen.cx
+      fallen.ox = fallen.rollStartOx
       apply(fallen)
     }
+    if (baseRuleEl) baseRuleEl.style.transform = 'scaleX(0)'
     doc.classList.add('anim')
 
     function burst(x, y, n, pw, acc) {
@@ -431,9 +429,41 @@
             if (s.v > 460) {
               s.v = -s.v * REST
               if (s.tumble) s.vrot *= -0.45
+            } else if (s.rollStartOx) {
+              // Rolling is its own state (3), distinct from falling (1),
+              // so this vertical-fall block stops running entirely for
+              // the rest of the roll: gravity must not keep integrating
+              // s.v/s.y underneath it, or it re-triggers "impact" (and
+              // another bounce/dust burst) every subsequent frame.
+              s.st = 3
+              s.v = 0
+              s.vrot = 0
+              s.rollT = 0
             } else {
               settle(s)
             }
+          }
+        }
+        if (s.st === 3) {
+          busy = true
+          s.rollT += dt
+          var rollDur = 0.85
+          var rp = Math.min(1, s.rollT / rollDur)
+          var eased = 1 - Math.pow(1 - rp, 3)
+          var newOx = s.rollStartOx * (1 - eased)
+          var traveled = s.ox - newOx
+          s.ox = newOx
+          // Rotation proportional to distance traveled, so it reads as
+          // rolling rather than sliding.
+          s.rot += traveled / Math.max(16, s.el.offsetWidth * 0.5)
+          if (baseRuleEl) {
+            var stoneAbsX = s.cx + s.ox
+            baseRuleEl.style.transform = 'scaleX(' + Math.max(0, Math.min(1, stoneAbsX / W)) + ')'
+          }
+          if (rp >= 1) {
+            s.ox = 0
+            if (baseRuleEl) baseRuleEl.style.transform = 'scaleX(1)'
+            settle(s)
           }
         }
         if (s.sq > 0.0015) {
@@ -460,12 +490,10 @@
             s.ty = 0
           }
         }
-        // The notch stone drifts from its ECK-corner start toward its
-        // resting horizontal position while it falls; the generic
-        // pointer-parallax easing below only takes over once it settles.
-        if (s.notchOx && s.st !== 2) {
-          var prog = s.notchY ? Math.max(0, Math.min(1, s.y / s.notchY)) : 0
-          s.ox = s.notchOx * prog
+        // The rolling stone's horizontal position is fully owned by the
+        // fall-then-roll logic above until it settles; the generic
+        // pointer-parallax easing below only takes over once it does.
+        if (s.rollStartOx && s.st !== 2) {
           busy = true
         } else {
           var dx = s.tx - s.ox,

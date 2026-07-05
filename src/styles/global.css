@@ -474,7 +474,10 @@ nav.links {
   }
 }
 
-/* Bottom baseline rule: draws in once the entrance settles. */
+/* Bottom baseline rule. Full width by default (reduced motion, no JS):
+   already-drawn, matching the settled entrance frame. On the two landing
+   pages with JS and motion enabled, the entrance script starts it at
+   scaleX(0) and paints it in as the rolling stone's trail instead. */
 .base-rule {
   position: fixed;
   left: 0;
@@ -484,19 +487,6 @@ nav.links {
   background: var(--accent-strong);
   z-index: 10;
   transform-origin: 0 50%;
-}
-
-html.anim .base-rule {
-  animation: draw 0.8s cubic-bezier(0.72, 0, 0.18, 1) 1.8s both;
-}
-
-@keyframes draw {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
 }
 
 html.anim .fadein {
@@ -532,8 +522,7 @@ html.anim .fadein {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.anim .fadein,
-  html.anim .base-rule {
+  html.anim .fadein {
     animation: none;
     opacity: 1;
   }
