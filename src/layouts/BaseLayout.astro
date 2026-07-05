@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css'
-import { SITE_URL, FIRST_COMMIT_URL, PERSON_JSON_LD } from '../lib/site'
+import { SITE_URL, PERSON_JSON_LD } from '../lib/site'
 
 interface Props {
   lang: 'de' | 'en'
@@ -31,8 +31,8 @@ const enPath = '/en/'
 const themeToggleLabel = lang === 'de' ? 'Farbschema wechseln' : 'Toggle color theme'
 const cornerstoneLabel =
   lang === 'de'
-    ? 'Eckstein. Kurzer Klick öffnet den ersten Commit, langes Drücken zeigt das Grundlinienraster.'
-    : 'Cornerstone. Short click opens the first commit, press and hold shows the baseline grid.'
+    ? 'Eckstein: Klick zeigt die vierte Bedeutung, Halten zeigt das Grundlinienraster'
+    : 'Cornerstone: click reveals the fourth sense, hold shows the baseline grid'
 ---
 
 <!doctype html>
@@ -108,7 +108,8 @@ const cornerstoneLabel =
         id="cornerstone"
         type="button"
         aria-label={cornerstoneLabel}
-        data-href={FIRST_COMMIT_URL}
+        aria-expanded="false"
+        aria-controls="sense-4"
       ></button>
       <div class="top-right">
         <nav class="lang-switch" aria-label={lang === 'de' ? 'Sprachwahl' : 'Language selector'}>
@@ -154,11 +155,23 @@ const cornerstoneLabel =
 
   var stone = document.getElementById('cornerstone')
   var grid = document.getElementById('grid-overlay').classList
+  var sense = document.getElementById('sense-4')
   var timer, holding, pressed
   var lastRelease = 0
   var on = (ev, fn) => stone.addEventListener(ev, fn)
   var isKey = (e) => e.key === ' ' || e.key === 'Enter'
-  var openCommit = () => window.open(stone.dataset.href, '_blank', 'noopener')
+  var toggleSense = () => {
+    if (!sense) return
+    var wasHidden = sense.hasAttribute('hidden')
+    stone.setAttribute('aria-expanded', String(wasHidden))
+    if (wasHidden) {
+      sense.removeAttribute('hidden')
+      requestAnimationFrame(() => requestAnimationFrame(() => sense.classList.add('on')))
+    } else {
+      sense.classList.remove('on')
+      sense.setAttribute('hidden', '')
+    }
+  }
 
   var start = (e) => {
     if (e.button > 0) return
@@ -169,13 +182,13 @@ const cornerstoneLabel =
     if (e.pointerId != null) { try { stone.setPointerCapture(e.pointerId) } catch (err) {} }
     timer = setTimeout(() => { holding = 1; grid.add('on') }, 400)
   }
-  var release = (open) => {
+  var release = (act) => {
     if (!pressed) return
     pressed = 0
     lastRelease = Date.now()
     clearTimeout(timer)
     if (holding) { holding = 0; grid.remove('on') }
-    else if (open) openCommit()
+    else if (act) toggleSense()
   }
 
   on('pointerdown', start)
@@ -187,7 +200,7 @@ const cornerstoneLabel =
   on('keyup', (e) => { if (isKey(e)) { e.preventDefault(); release(1) } })
   /* Screen readers activate buttons with a synthesized click (detail 0) and no
      pointer or key events. The timestamp guards ATs that send both. */
-  on('click', (e) => { if (e.detail === 0 && Date.now() - lastRelease > 500) openCommit() })
+  on('click', (e) => { if (e.detail === 0 && Date.now() - lastRelease > 500) toggleSense() })
 })()
     </script>
     <!-- Psalm 118,22: Der Stein, den die Bauleute verworfen haben, ist zum Eckstein geworden. -->

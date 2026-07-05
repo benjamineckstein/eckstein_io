@@ -1,6 +1,7 @@
-/* eckstein.io: one page, one word, three senses.
+/* eckstein.io: one page, one word, three senses, and a fourth hidden one.
    Every vertical measure is a multiple of the 28px baseline.
-   Hold the cornerstone (top left) to check. */
+   Hold the cornerstone (top left) to check the grid, click it to reveal
+   the fourth sense. */
 
 @font-face {
   font-family: 'Literata';
@@ -107,7 +108,8 @@ button:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .grid-overlay {
+  .grid-overlay,
+  #sense-4 {
     transition: none;
   }
 }
@@ -262,6 +264,22 @@ main {
 
 .sense-label {
   color: var(--muted);
+}
+
+/* Sense 4: hidden by default, revealed by a short click on the cornerstone.
+   [hidden] keeps it out of layout and out of the accessibility tree; the
+   opacity transition only ever runs on the way in, see BaseLayout's script. */
+#sense-4[hidden] {
+  display: none;
+}
+
+#sense-4 {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+#sense-4.on {
+  opacity: 1;
 }
 
 .xrefs li {

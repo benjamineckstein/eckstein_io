@@ -9,7 +9,7 @@ There is no framework on the client, no tracking, no cookies and no external req
 kind at runtime. One self-hosted serif (Literata, latin subset, 400 and 700), one hand-written
 stylesheet on a strict 28px baseline grid, and one small inline script for the theme toggle and
 the cornerstone interaction: hold the 12px square top left to see the baseline grid; a short
-click opens the first public commit. A machine layer (`/llms.txt`, `/benjamin.json`,
+click reveals a fourth, hidden dictionary sense. A machine layer (`/llms.txt`, `/benjamin.json`,
 `/benjamin.vcf`, JSON-LD) serves visiting agents.
 
 ## Weight budget
