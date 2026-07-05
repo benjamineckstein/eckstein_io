@@ -445,6 +445,25 @@ nav.links {
    label and hint sit too far apart; three narrow columns keep each
    link readable while still using the width. */
 @media (min-width: 1400px) {
+  /* ECKSTEIN becomes one line, edge to edge, the two rows sitting side
+     by side instead of stacked. Entry drops its width cap so the line
+     can use the full viewport; the entrance physics and the lithophone
+     read the same "*.st" elements either way, so nothing else changes. */
+  .entry {
+    max-width: none;
+  }
+
+  h1.rows {
+    display: flex;
+    gap: 0;
+    align-items: baseline;
+    font-size: clamp(3rem, 14vw, 40rem);
+  }
+
+  .row + .row {
+    margin-top: 0;
+  }
+
   nav.links {
     display: flex;
     gap: clamp(24px, 3vw, 64px);
