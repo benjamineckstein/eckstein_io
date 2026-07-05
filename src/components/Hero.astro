@@ -120,10 +120,52 @@
         el.classList.add('struck')
       }
     }
+    // Hidden melody easter egg: strike the letters in the name's own order,
+    // E-C-K-S-T-E-I-N (either E counts), and the poster answers back. No
+    // hint anywhere on the page, discoverable only.
+    var comboTarget = ['E', 'C', 'K', 'S', 'T', 'E', 'I', 'N']
+    var comboIndex = 0
+    function comboReward() {
+      var grid = document.getElementById('grid-overlay')
+      if (grid) {
+        grid.classList.add('on')
+        setTimeout(function () {
+          grid.classList.remove('on')
+        }, 900)
+      }
+      scale.forEach(function (freq, idx) {
+        setTimeout(function () {
+          strikeNote(freq)
+        }, idx * 70)
+      })
+      if (stones) {
+        els.forEach(function (el, idx) {
+          setTimeout(function () {
+            if (stones[idx]) {
+              stones[idx].sq = Math.max(stones[idx].sq, 0.14)
+              wake()
+            }
+          }, idx * 70)
+        })
+      }
+    }
+    function checkCombo(i) {
+      var letter = els[i].textContent.toUpperCase()
+      if (letter === comboTarget[comboIndex]) {
+        comboIndex++
+        if (comboIndex === comboTarget.length) {
+          comboIndex = 0
+          comboReward()
+        }
+      } else {
+        comboIndex = letter === comboTarget[0] ? 1 : 0
+      }
+    }
     function strike(i) {
       ensureAudio()
       strikeNote(scale[i])
       strikeVisual(i)
+      checkCombo(i)
     }
     els.forEach(function (el, i) {
       el.addEventListener('pointerdown', function (e) {
