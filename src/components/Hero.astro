@@ -1,0 +1,335 @@
+---
+/**
+ * The kinetic poster hero: giant staggered ECK / STEIN letters that drop,
+ * overshoot and settle, plus the dust-particle canvas and the fallen-stone
+ * physics that also carries the BaseLayout cornerstone button into its
+ * resting corner. Shared between the DE and EN landing pages so the entrance
+ * choreography only has to be written, and tuned, once.
+ *
+ * Under prefers-reduced-motion (or with JS disabled) the script below never
+ * runs: letters, the cornerstone and the baseline rule simply render in
+ * their final CSS position, no animation, fully readable immediately.
+ */
+---
+
+<canvas id="dust" aria-hidden="true"></canvas>
+<div class="mid">
+  <h1 class="rows" aria-label="Benjamin Eckstein">
+    <span class="row" aria-hidden="true">
+      <span class="st">E</span><span class="st">C</span><span class="st">K</span>
+    </span>
+    <span class="row" aria-hidden="true">
+      <span class="st">S</span><span class="st">T</span><span class="st">E</span><span class="st">I</span><span
+        class="st">N</span
+      >
+    </span>
+    <span class="dict serif" aria-hidden="true" lang="de">der; -s, -e</span>
+  </h1>
+  <slot />
+</div>
+<div class="base-rule" aria-hidden="true"></div>
+
+<script is:inline>
+  ;(() => {
+    'use strict'
+    var RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+    var doc = document.documentElement
+    // Reduced motion (or a user who got here before fonts/JS settled): leave
+    // the static, already-correct CSS layout alone. No 'anim' class means
+    // none of the entrance transforms below ever apply.
+    if (RM) return
+
+    var rowEls = [].slice.call(document.querySelectorAll('.row'))
+    var els = [].slice.call(document.querySelectorAll('.st'))
+    var stone = document.getElementById('cornerstone')
+    var cv = document.getElementById('dust')
+    if (!els.length || !stone || !cv || !(cv instanceof HTMLCanvasElement)) return
+    var ctx = cv.getContext('2d')
+    if (!ctx) return
+
+    var W = 0,
+      H = 0,
+      DPR = 1
+    function sizeCv() {
+      W = innerWidth
+      H = innerHeight
+      DPR = Math.min(devicePixelRatio || 1, 2)
+      cv.width = Math.round(W * DPR)
+      cv.height = Math.round(H * DPR)
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0)
+    }
+    sizeCv()
+
+    var cDust = '#a39e93',
+      cAcc = '#059669'
+    function palette() {
+      var s = getComputedStyle(doc)
+      cDust = s.getPropertyValue('--dust').trim() || cDust
+      cAcc = s.getPropertyValue('--accent-strong').trim() || cAcc
+    }
+    palette()
+
+    var delays = [0, 90, 180, 430, 520, 610, 700, 790]
+    var stones = els.map(function (el, i) {
+      return {
+        el: el,
+        row: i < 3 ? 0 : 1,
+        delay: delays[i],
+        y: 0,
+        v: 0,
+        st: 0,
+        sq: 0,
+        rot: 0,
+        vrot: 0,
+        restRot: 0,
+        tumble: false,
+        ox: 0,
+        oy: 0,
+        tx: 0,
+        ty: 0,
+        cx: 0,
+        cy: 0,
+        bot: 0,
+        big: false,
+        done: false,
+      }
+    })
+    // The one idea borrowed from the wildcard prototype: this single stone
+    // tumbles (gains rotation) as it falls, unlike the letters above it.
+    var spin = (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 3)
+    var rest = (Math.random() < 0.5 ? -1 : 1) * (0.035 + Math.random() * 0.05)
+    var fallen = {
+      el: stone,
+      row: -1,
+      delay: 1120,
+      y: 0,
+      v: 0,
+      st: 0,
+      sq: 0,
+      rot: 0,
+      vrot: spin,
+      restRot: rest,
+      tumble: true,
+      ox: 0,
+      oy: 0,
+      tx: 0,
+      ty: 0,
+      cx: 0,
+      cy: 0,
+      bot: 0,
+      big: true,
+      done: false,
+    }
+    stones.push(fallen)
+    var rowLeft = [3, 5]
+
+    function measure() {
+      stones.forEach(function (s) {
+        var r = s.el.getBoundingClientRect()
+        s.cx = r.left + r.width / 2
+        s.cy = r.top + r.height / 2
+        s.bot = r.bottom
+      })
+    }
+    measure()
+
+    var G = 5200,
+      REST = 0.24,
+      dust = [],
+      raf = 0,
+      last = 0,
+      px = -1,
+      py = -1
+    var t0 = performance.now() + 280
+
+    function apply(s) {
+      var t =
+        'translate3d(' +
+        s.ox.toFixed(2) +
+        'px,' +
+        (s.y + s.oy).toFixed(2) +
+        'px,0) scale(' +
+        (1 + s.sq).toFixed(4) +
+        ',' +
+        (1 - s.sq).toFixed(4) +
+        ')'
+      if (s.tumble) t += ' rotate(' + s.rot.toFixed(3) + 'rad)'
+      s.el.style.transform = t
+    }
+    stones.forEach(function (s) {
+      s.y = -(s.bot + H * 0.22 + Math.random() * 90)
+      apply(s)
+    })
+    doc.classList.add('anim')
+
+    function burst(x, y, n, pw, acc) {
+      for (var i = 0; i < n; i++) {
+        dust.push({
+          x: x + (Math.random() - 0.5) * 36,
+          y: y - 2,
+          vx: (Math.random() - 0.5) * pw,
+          vy: -Math.random() * pw * 0.42 - 30,
+          l: 0.38 + Math.random() * 0.5,
+          t: 0,
+          sz: 1 + Math.random() * 2.4,
+          a: acc && Math.random() < 0.4,
+        })
+      }
+    }
+    function boom(s, v) {
+      var n = Math.round(Math.min(26, 3 + (v - 300) / 110))
+      burst(s.cx + s.ox, s.bot, s.big ? 26 : n, s.big ? 760 : Math.min(760, v * 0.32), s.big)
+      s.sq = Math.min(0.02 + v / 26000, 0.09)
+    }
+    function settle(s) {
+      s.v = 0
+      s.st = 2
+      if (!s.done) {
+        s.done = true
+        if (s.row >= 0 && --rowLeft[s.row] === 0) rowEls[s.row].classList.add('set')
+      }
+    }
+    function frame(now) {
+      raf = 0
+      var dt = Math.min(now - last || 16, 40) / 1000
+      last = now
+      var busy = false,
+        i,
+        s
+      for (i = 0; i < stones.length; i++) {
+        s = stones[i]
+        if (s.st === 0) {
+          busy = true
+          if (now >= t0 + s.delay) s.st = 1
+        }
+        if (s.st === 1) {
+          busy = true
+          s.v += G * dt
+          s.y += s.v * dt
+          if (s.tumble) s.rot += s.vrot * dt
+          if (s.y >= 0) {
+            s.y = 0
+            if (s.v > 460) {
+              boom(s, s.v)
+              s.v = -s.v * REST
+              if (s.tumble) s.vrot *= -0.45
+            } else {
+              settle(s)
+            }
+          }
+        }
+        if (s.sq > 0.0015) {
+          s.sq *= Math.exp(-11 * dt)
+          busy = true
+        } else if (s.sq) s.sq = 0
+        if (s.tumble && s.st === 2) {
+          var dr = s.restRot - s.rot
+          if (Math.abs(dr) > 0.0008 || Math.abs(s.vrot) > 0.01) {
+            s.vrot *= Math.exp(-9 * dt)
+            s.rot += dr * Math.min(1, 6 * dt)
+            busy = true
+          } else {
+            s.rot = s.restRot
+            s.vrot = 0
+          }
+        }
+        if (s.st === 2) {
+          if (px >= 0) {
+            s.tx = ((px - s.cx) / W) * -9
+            s.ty = ((py - s.cy) / H) * -5
+          } else {
+            s.tx = 0
+            s.ty = 0
+          }
+        }
+        var dx = s.tx - s.ox,
+          dy = s.ty - s.oy
+        if (Math.abs(dx) > 0.04 || Math.abs(dy) > 0.04) {
+          var k = Math.min(1, 5.5 * dt)
+          s.ox += dx * k
+          s.oy += dy * k
+          busy = true
+        }
+        apply(s)
+      }
+      ctx.clearRect(0, 0, W, H)
+      if (dust.length) {
+        busy = true
+        for (i = dust.length - 1; i >= 0; i--) {
+          var p = dust[i]
+          p.t += dt
+          if (p.t >= p.l) {
+            dust.splice(i, 1)
+            continue
+          }
+          p.vy += 1600 * dt
+          p.x += p.vx * dt
+          p.y += p.vy * dt
+          ctx.globalAlpha = (1 - p.t / p.l) * 0.85
+          ctx.fillStyle = p.a ? cAcc : cDust
+          ctx.fillRect(p.x, p.y, p.sz, p.sz)
+        }
+        ctx.globalAlpha = 1
+      }
+      if (busy) raf = requestAnimationFrame(frame)
+    }
+    function wake() {
+      if (!raf && !document.hidden) {
+        last = performance.now()
+        raf = requestAnimationFrame(frame)
+      }
+    }
+    wake()
+
+    addEventListener(
+      'pointermove',
+      function (e) {
+        px = e.clientX
+        py = e.clientY
+        wake()
+      },
+      { passive: true }
+    )
+    document.addEventListener('pointerleave', function () {
+      px = py = -1
+      wake()
+    })
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        if (raf) {
+          cancelAnimationFrame(raf)
+          raf = 0
+        }
+      } else wake()
+    })
+    // The page ignores prefers-color-scheme by design (dark is the default
+    // regardless of OS setting), so only the explicit toggle needs to
+    // refresh the dust palette, not a system scheme change.
+    var themeToggle = document.getElementById('theme-toggle')
+    if (themeToggle) themeToggle.addEventListener('click', function () {
+      // Wait for the [data-theme] attribute flip (same tick) before reading.
+      setTimeout(palette, 0)
+    })
+
+    var rt = 0
+    addEventListener('resize', function () {
+      clearTimeout(rt)
+      rt = setTimeout(function () {
+        sizeCv()
+        var allDone = stones.every(function (s) {
+          return s.st === 2
+        })
+        if (allDone) {
+          stones.forEach(function (s) {
+            s.el.style.transform = ''
+            s.ox = s.oy = s.tx = s.ty = 0
+            s.rot = s.tumble ? s.restRot : 0
+          })
+          measure()
+          stones.forEach(apply)
+        }
+        wake()
+      }, 160)
+    })
+  })()
+</script>

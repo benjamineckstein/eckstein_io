@@ -1,15 +1,19 @@
 # eckstein.io
 
-A single-page dictionary entry for the surname Eckstein, typeset like a Duden page. Three
-senses: the literal corner stone, the figurative foundation, and Benjamin Eckstein, freelance
-agentic engineer near Berlin. German at `/`, English at `/en/`, plus Impressum and Datenschutz.
-Built with Astro, static output, deployed to GitHub Pages.
+A black brutalist poster: giant staggered ECK / STEIN letters that drop, overshoot and settle
+on load, a dictionary micro-mark for the surname, and a numbered list of three links to
+Benjamin Eckstein, freelance agentic engineer near Berlin. German at `/`, English at `/en/`,
+plus Impressum and Datenschutz. Dark is the default identity on every visit, regardless of OS
+preference; a manual toggle opts into the cream/paper light variant. Built with Astro, static
+output, deployed to GitHub Pages.
 
 There is no framework on the client, no tracking, no cookies and no external request of any
-kind at runtime. One self-hosted serif (Literata, latin subset, 400 and 700), one hand-written
-stylesheet on a strict 28px baseline grid, and one small inline script for the theme toggle and
-the cornerstone interaction: hold the 12px square top left to see the baseline grid; a short
-click reveals a fourth, hidden dictionary sense. A machine layer (`/llms.txt`, `/benjamin.json`,
+kind at runtime. One self-hosted serif (Literata, latin subset, 400 and 700) for the tagline
+and a few literary flourishes, the system sans stack for the giant letters and UI chrome, and
+vanilla JS for the theme toggle, the entrance animation (a small canvas of falling-dust
+particles) and the cornerstone interaction: one stone tumbles out of the headline and settles
+in the bottom right corner during the drop; a short click reveals a fourth, hidden sense,
+holding brightens the faint architect grid. A machine layer (`/llms.txt`, `/benjamin.json`,
 `/benjamin.vcf`, JSON-LD) serves visiting agents.
 
 ## Status
@@ -30,11 +34,10 @@ woff2 fonts and the favicon.
 
 Run `pnpm build && pnpm bundle-gate` to see the current numbers.
 
-Accepted trade-off: the entry ships roman 400 and 700 only. Usage labels a dictionary would
-set in italic stay roman (muted, in ‹ › guillemets); the Literata italic subset would cost
-another ~20 kB and push the page over the target. `font-synthesis: none` guarantees no faux
-italic or bold ever renders. The IPA line is pinned to Georgia, since Literata lacks three of
-its glyphs.
+Accepted trade-off: the page ships roman 400 and 700 only. The tagline, dictionary mark and
+link hints are set in italic, but the Literata italic subset would cost another ~20 kB and
+push the page over the target, so `font-synthesis: none` guarantees no faux italic ever
+renders; those lines stay upright by design, not by omission.
 
 ## Development
 
@@ -53,5 +56,3 @@ executed at build time in `src/lib/site.ts`, falls back to "dev").
 
 - Reserved subdomains: `cv.eckstein.io` for a machine-readable CV, `talks.eckstein.io` for
   slides and recordings.
-- Mail on the domain (`mail@eckstein.io` or `post@eckstein.io`) once MX hosting is decided.
-  Until then, contact stays on benjamin@codewithagents.de.

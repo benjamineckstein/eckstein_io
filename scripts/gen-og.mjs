@@ -19,36 +19,49 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <style>
   @font-face { font-family: Literata; font-weight: 400; src: url(${font('literata-latin-400.woff2')}) format('woff2'); }
-  @font-face { font-family: Literata; font-weight: 700; src: url(${font('literata-latin-700.woff2')}) format('woff2'); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     width: 1200px; height: 630px; overflow: hidden;
-    background: #f6f1e7; color: #211d15;
-    font-family: Literata, Georgia, serif;
-    padding: 84px 96px;
+    background: #121214; color: #f2ede3;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    padding: 60px 68px;
+    position: relative;
   }
-  .stone { width: 24px; height: 24px; background: #211d15; margin-bottom: 44px; }
-  h1 { font-size: 84px; line-height: 1; font-weight: 700; letter-spacing: -0.01em; }
-  h1 span { font-weight: 400; font-size: 52px; color: #6f6553; }
-  .gram { margin-top: 20px; font-size: 30px; color: #6f6553; }
-  .rule { margin: 40px 0 36px; height: 1px; background: #d9d1c0; }
-  .senses { list-style: none; font-size: 31px; line-height: 52px; }
-  .senses b { color: #9a3b1e; font-weight: 700; }
-  .senses i { font-style: normal; color: #6f6553; }
-  .domain { position: absolute; left: 96px; bottom: 40px; font-size: 26px; color: #6f6553; }
+  .name { font-weight: 700; font-size: 26px; letter-spacing: 0.01em; }
+  .role {
+    color: #34d399; font-weight: 700; font-size: 17px; letter-spacing: 0.28em;
+    text-transform: uppercase; margin-top: 6px;
+  }
+  h1 {
+    font-weight: 900; font-size: 188px; line-height: 0.84;
+    margin-top: 16px; position: relative; width: fit-content;
+  }
+  .row { display: flex; gap: 0.28em; }
+  .row + .row { margin-top: 0.04em; }
+  .dict {
+    position: absolute; right: 4px; bottom: -0.5em;
+    font-family: Literata, Georgia, serif; font-style: italic;
+    font-size: 22px; color: #a39e93;
+  }
+  .tag {
+    font-family: Literata, Georgia, serif; font-style: italic;
+    color: #a39e93; font-size: 25px; margin-top: 26px;
+  }
+  .domain { position: absolute; left: 68px; bottom: 34px; font-size: 22px; color: #a39e93; }
+  .stone { position: absolute; right: 0; bottom: 0; width: 56px; height: 56px; background: #059669; }
 </style>
 </head>
 <body>
-  <div class="stone"></div>
-  <h1>Eck·stein, <span>der</span></h1>
-  <p class="gram">[ˈɛkˌʃtaɪ̯n] · Substantiv, maskulin</p>
-  <div class="rule"></div>
-  <ol class="senses">
-    <li><b>1.</b> Stein an der Ecke eines Bauwerks</li>
-    <li><b>2.</b> <i>‹übertragen›</i> Grundlage, auf der alles Weitere aufbaut</li>
-    <li><b>3.</b> <i>‹hier›</i> Benjamin Eckstein, Agentic Engineer</li>
-  </ol>
+  <p class="name">Benjamin Eckstein</p>
+  <p class="role">Agentic Engineer</p>
+  <h1>
+    <span class="row">ECK</span>
+    <span class="row">STEIN</span>
+    <span class="dict">der; -s, -e</span>
+  </h1>
+  <p class="tag">Schreibt seit zwanzig Jahren Software. Bringt es jetzt Maschinen bei.</p>
   <p class="domain">eckstein.io</p>
+  <div class="stone"></div>
 </body>
 </html>`
 

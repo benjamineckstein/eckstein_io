@@ -1,7 +1,9 @@
-/* eckstein.io: one page, one word, three senses, and a fourth hidden one.
-   Every vertical measure is a multiple of the 28px baseline.
-   Hold the cornerstone (top left) to check the grid, click it to reveal
-   the fourth sense. */
+/* eckstein.io: a black brutalist poster with one name, three links and a
+   fourth, hidden sense. Dark is the default identity, on every visit,
+   regardless of OS preference; the light variant is an explicit opt-in via
+   the toggle. Hold the cornerstone (bottom right) to see the architect grid,
+   click it to reveal the fourth sense. Legal pages share the same tokens
+   but scroll normally. */
 
 @font-face {
   font-family: 'Literata';
@@ -21,35 +23,31 @@
 
 :root {
   --baseline: 1.75rem;
-  color-scheme: light;
-  --paper: #f6f1e7;
-  --ink: #211d15;
-  --muted: #6f6553;
-  --accent: #9a3b1e;
-  --hairline: #d9d1c0;
-  --grid-line: rgba(154, 59, 30, 0.3);
+  --sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* Dark is the base palette: no data-theme attribute needed to get it. */
+  color-scheme: dark light;
+  --bg: #121214;
+  --ink: #f2ede3;
+  --muted: #a39e93;
+  --hairline: rgba(242, 237, 227, 0.16);
+  --grid-line: rgba(242, 237, 227, 0.05);
+  --dust: #c9c2b4;
+  --accent: #34d399;
+  --accent-strong: #059669;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --paper: #16140f;
-    --ink: #e6dfd0;
-    --muted: #998f76;
-    --accent: #d08a5e;
-    --hairline: #373226;
-    --grid-line: rgba(208, 138, 94, 0.3);
-  }
-}
-
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --paper: #16140f;
-  --ink: #e6dfd0;
-  --muted: #998f76;
-  --accent: #d08a5e;
-  --hairline: #373226;
-  --grid-line: rgba(208, 138, 94, 0.3);
+:root[data-theme='light'] {
+  color-scheme: light dark;
+  --bg: #f2eee6;
+  --ink: #16161a;
+  --muted: #5f5747;
+  --hairline: rgba(22, 22, 26, 0.2);
+  --grid-line: rgba(22, 22, 26, 0.06);
+  --dust: #6b655a;
+  --accent: #047857;
+  --accent-strong: #059669;
 }
 
 * {
@@ -58,22 +56,62 @@
   padding: 0;
 }
 
+html {
+  overscroll-behavior: none;
+}
+
 body {
   font-family: 'Literata', Georgia, 'Times New Roman', serif;
   font-synthesis: none;
   font-size: 1rem;
   line-height: var(--baseline);
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
   min-height: 100svh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The two landing pages (/ and /en/): a single, never-scrolling viewport.
+   line-height resets from the legal pages' 28px prose baseline to a normal
+   relative value: at UI text sizes (12-28px) the fixed baseline wastes a
+   lot of vertical rhythm the poster's fixed-height viewport cannot spare. */
+body.poster {
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+  font-family: var(--sans);
+  line-height: 1.3;
+}
+
+/* Opt back into the serif for the handful of literary/typeset flourishes
+   (tagline, dictionary mark, link hints, footer claim) inside the
+   otherwise-sans poster. On legal pages the body is already serif, so this
+   is a no-op there. */
+.serif {
+  font-family: 'Literata', Georgia, 'Times New Roman', serif;
+}
+
+/* A faint, fixed grain over the whole viewport: paper/print texture for the
+   poster identity. Cheap (inline data URI, no request) and subtle enough to
+   stay out of the way of legal-page reading. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--paper);
+  background: var(--accent-strong);
+  color: var(--bg);
 }
 
 a {
@@ -82,25 +120,25 @@ a {
 
 a:focus-visible,
 button:focus-visible {
-  outline: 1px solid var(--accent);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-/* Baseline grid overlay, shown while the cornerstone is held.
-   Absolute, not fixed: it spans the whole document (body is the containing
-   block) and scrolls with the text, so the lattice stays truthful on long
-   pages. The 21px offset moves the hairlines from the line-box top onto the
-   type baseline: 2px half-leading plus 19px Literata ascent at 1rem. */
+/* Architect grid: faint at rest (the poster's construction-drawing texture),
+   brightened while the cornerstone is held. Absolute, not fixed, so on
+   legal pages it spans the full scrollable document, not just one screen. */
 .grid-overlay {
   position: absolute;
   inset: 0;
-  z-index: 10;
+  z-index: -1;
   pointer-events: none;
-  opacity: 0;
+  opacity: 0.6;
   transition: opacity 0.35s ease;
-  background-image: linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px 100%);
-  background-size: 100% var(--baseline);
-  background-position-y: 21px;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:
+    clamp(48px, 8vw, 120px) clamp(48px, 8vw, 120px);
 }
 
 .grid-overlay.on {
@@ -109,50 +147,104 @@ button:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .grid-overlay,
-  #sense-4 {
+  .psalm,
+  .link,
+  .cornerstone {
     transition: none;
   }
 }
 
-/* The cornerstone: 12px square, top left, centered on the first hairline (y 21px). */
+/* The cornerstone / fallen stone: an emerald square flush to the bottom
+   right corner on every page. On the two landing pages it is the stone
+   that drops out of the headline and tumbles into place; everywhere else,
+   and under reduced motion, it simply sits there. Click reveals the fourth,
+   biblical sense; holding brightens the architect grid. */
 .cornerstone {
   position: fixed;
-  top: 15px;
-  left: 1.5rem;
-  width: 12px;
-  height: 12px;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: clamp(48px, 7vh, 64px);
+  height: clamp(48px, 7vh, 64px);
   border: none;
-  background: var(--ink);
+  background: var(--accent-strong);
   cursor: pointer;
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  will-change: transform;
 }
 
-.cornerstone::after {
-  content: '';
-  position: absolute;
-  inset: -12px;
+@media (hover: hover) {
+  .cornerstone:hover {
+    filter: brightness(1.15);
+  }
 }
 
-.cornerstone:hover {
-  background: var(--accent);
+/* Top-left masthead: name and role, poster pages only. */
+.masthead {
+  position: fixed;
+  top: 1.25rem;
+  left: 1.5rem;
+  z-index: 15;
+  font-family: var(--sans);
+  pointer-events: none;
 }
 
+.name {
+  font-weight: 700;
+  font-size: clamp(13px, 1.2vw, 17px);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.role {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: clamp(11px, 1vw, 14px);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* Top-right chrome: coordinates (poster pages only) stacked above the
+   language switch and theme toggle, present on every page. */
 .top-right {
   position: fixed;
   top: 1.25rem;
   right: 1.5rem;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  font-family: var(--sans);
+}
+
+.geo {
+  color: var(--muted);
+  font-size: clamp(10px, 0.9vw, 12px);
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.controls {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .lang-switch a {
   color: var(--muted);
   text-decoration: none;
+  display: inline-block;
+  padding: 14px 3px;
+  margin: -14px -1px;
 }
 
 .lang-switch a[aria-current='page'] {
@@ -174,166 +266,341 @@ button:focus-visible {
   cursor: pointer;
 }
 
-/* Same trick as the cornerstone: a 38px effective hit target on a 14px visual. */
 .theme-toggle::after {
   content: '';
   position: absolute;
-  inset: -12px;
+  inset: -15px;
 }
 
-/* The dictionary entry. The footer follows the content in flow (no stretch),
-   so it stays on the baseline grid; tall screens get blank paper below. */
-main {
-  flex: none;
+/* The poster main: a flex column filling the fixed viewport exactly, so the
+   giant letters can center themselves in the space between the masthead
+   row and the numbered links via .mid's auto margins. */
+.entry {
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  max-width: 40rem;
-  margin-inline: auto;
-  padding: calc(var(--baseline) * 2) 1.5rem 0;
+  max-width: 1800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(56px, 7vh, 80px) clamp(16px, 3vw, 56px) clamp(10px, 1.5vh, 20px);
 }
 
-.headword {
-  font-size: 2.25rem;
-  line-height: calc(var(--baseline) * 2);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.headword .article {
-  font-weight: 400;
-  font-size: 1.375rem;
-  line-height: 1;
-  color: var(--muted);
-}
-
-/* Literata lacks ʃ, ɪ and the combining inverted breve, so the IPA line
-   renders in one consistent fallback face instead of a per-glyph mix. */
-.pron {
-  font-family: Georgia, 'Times New Roman', serif;
-  color: var(--muted);
-}
-
-.grammar,
-.entry-meta {
-  font-size: 0.9375rem;
-  color: var(--muted);
-}
-
-.entry-meta {
-  margin-top: var(--baseline);
-}
-
-.entry-meta dt,
-.entry-meta dd {
-  display: inline;
-}
-
-.entry-meta dt {
-  font-weight: 700;
-}
-
-.senses,
-.xrefs {
-  list-style: none;
-  margin-top: var(--baseline);
-  border-top: 1px solid var(--hairline);
-  padding-top: calc(var(--baseline) - 1px);
-}
-
-.senses {
-  counter-reset: sense;
-}
-
-.senses li {
-  counter-increment: sense;
+.mid {
+  margin: auto 0;
   position: relative;
-  padding-left: 2.25rem;
 }
 
-.senses li + li,
-.xrefs li + li {
-  margin-top: var(--baseline);
+h1.rows {
+  font-size: clamp(2.75rem, min(23vw, 30vh), 30rem);
+  width: 3.3em;
+  max-width: 100%;
+  font-weight: 900;
+  line-height: 0.84;
+  position: relative;
+  color: var(--ink);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.senses li::before {
-  content: counter(sense) '.';
+.row {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+.row + .row {
+  margin-top: 0.05em;
+}
+
+.st {
+  display: block;
+  will-change: transform;
+  transform-origin: 50% 88%;
+}
+
+.row::after {
+  content: '';
   position: absolute;
-  left: 0;
-  font-weight: 700;
-  color: var(--accent);
+  left: 0.02em;
+  right: 0.02em;
+  bottom: -0.05em;
+  height: 2px;
+  background: var(--hairline);
+  transform-origin: 0 50%;
+  transition: transform 0.8s cubic-bezier(0.72, 0, 0.18, 1);
 }
 
-.sense-label {
+html.anim .row::after {
+  transform: scaleX(0);
+}
+
+html.anim .row.set::after {
+  transform: scaleX(1);
+}
+
+.dict {
+  position: absolute;
+  right: 0;
+  bottom: -1.7em;
+  font-size: clamp(12px, 1.05vw, 16px);
+  font-style: italic;
   color: var(--muted);
 }
 
-/* Sense 4: hidden by default, revealed by a short click on the cornerstone.
-   [hidden] keeps it out of layout and out of the accessibility tree; the
-   opacity transition only ever runs on the way in, see BaseLayout's script. */
-#sense-4[hidden] {
+.tag {
+  margin-top: clamp(16px, 3vh, 34px);
+  font-style: italic;
+  color: var(--muted);
+  font-size: clamp(13px, 1.25vw, 19px);
+  max-width: 36em;
+}
+
+/* The fourth, hidden sense: revealed by a click on the cornerstone, near
+   the tagline rather than pinned to the corner (unlike the base prototype). */
+.psalm {
+  margin-top: clamp(6px, 1.2vh, 12px);
+  font-style: italic;
+  color: var(--accent);
+  font-size: clamp(12.5px, 1.15vw, 17px);
+  max-width: 34em;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.psalm[hidden] {
   display: none;
 }
 
-#sense-4 {
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-#sense-4.on {
+.psalm.on {
   opacity: 1;
 }
 
-.xrefs li {
-  display: flex;
-  justify-content: space-between;
-  gap: 0 1.5rem;
-  flex-wrap: wrap;
-}
-
-.xrefs a {
-  font-weight: 700;
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.xrefs a:hover {
-  color: var(--accent);
-}
-
-.xrefs .arrow {
-  color: var(--accent);
-  font-weight: 400;
-}
-
-.xrefs .note {
-  font-size: 0.9375rem;
+.psalm .sense-label {
   color: var(--muted);
+  font-style: normal;
 }
 
-/* Footer */
+/* Numbered link list. */
+nav.links {
+  flex: none;
+  margin-top: clamp(10px, 2vh, 28px);
+}
+
+.link {
+  display: grid;
+  grid-template-columns: 2.6em 1fr auto;
+  align-items: baseline;
+  gap: 0.7em;
+  text-decoration: none;
+  color: var(--ink);
+  border-top: 1px solid var(--hairline);
+  padding: clamp(8px, 1.3vh, 15px) clamp(2px, 0.5vw, 10px);
+  font-size: clamp(16px, 1.3vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition:
+    background 0.18s ease-out,
+    color 0.18s ease-out,
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 420px) {
+  .link {
+    grid-template-columns: 2.2em 1fr;
+    row-gap: 1px;
+  }
+
+  .hint {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+
+.link:last-child {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.idx {
+  color: var(--accent);
+  font-size: 0.6em;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: clamp(11px, 1vw, 15px);
+  font-style: italic;
+  font-weight: 400;
+  text-align: right;
+}
+
+@media (hover: hover) {
+  .link:hover {
+    background: var(--accent-strong);
+    color: var(--bg);
+    transform: translateX(0.35em);
+  }
+
+  .link:hover .idx,
+  .link:hover .hint {
+    color: var(--bg);
+  }
+}
+
+.link:active {
+  transform: translateX(0.35em) scale(0.995);
+}
+
+/* Bottom baseline rule: draws in once the entrance settles. */
+.base-rule {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--accent-strong);
+  z-index: 10;
+  transform-origin: 0 50%;
+}
+
+html.anim .base-rule {
+  animation: draw 0.8s cubic-bezier(0.72, 0, 0.18, 1) 1.8s both;
+}
+
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+html.anim .fadein {
+  opacity: 0;
+  animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.d1 {
+  animation-delay: 0.85s;
+}
+.d2 {
+  animation-delay: 1.5s;
+}
+.d3 {
+  animation-delay: 1.62s;
+}
+.d4 {
+  animation-delay: 1.74s;
+}
+.d5 {
+  animation-delay: 1.86s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.anim .fadein,
+  html.anim .base-rule {
+    animation: none;
+    opacity: 1;
+  }
+
+  html.anim .row::after {
+    transform: scaleX(1);
+    transition: none;
+  }
+}
+
+/* Short landscape viewports (~380px tall): drop tertiary elements, not the
+   name, the letters, the tagline or the links. */
+@media (max-height: 540px) {
+  .tag,
+  .dict,
+  .geo,
+  .psalm {
+    display: none;
+  }
+
+  h1.rows {
+    font-size: clamp(2.25rem, min(20vw, 18vh), 20rem);
+  }
+
+  .entry {
+    padding-top: clamp(48px, 8vh, 72px);
+  }
+
+  nav.links {
+    margin-top: clamp(8px, 2vh, 18px);
+  }
+}
+
+@media (max-width: 319px) {
+  /* Below the 320px floor viewport width: the coordinates are decorative
+     flavor, the name is identity. If anything has to go, it is not the name. */
+  .geo {
+    display: none;
+  }
+}
+
+#dust {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+}
+
+/* Footer, shared by the poster pages and the legal pages. */
 .site-footer {
   flex: none;
   width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 56px) clamp(10px, 2vh, 20px);
+  padding-right: clamp(80px, 10vw, 104px);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+body:not(.poster) .site-footer {
   max-width: 40rem;
   margin: var(--baseline) auto 0;
   padding: 0 1.5rem var(--baseline);
-  font-size: 0.8125rem;
-  color: var(--muted);
+  padding-right: clamp(80px, 20vw, 104px);
 }
 
 .site-footer a {
   color: inherit;
 }
 
-/* The build minifier collapses whitespace around these separators. */
-.footer-links > span,
-.lang-switch > span {
+.footer-links > span {
   margin: 0 0.375rem;
 }
 
-/* Legal pages */
+.footer-microcopy {
+  margin-top: 0.25rem;
+}
+
+/* Legal pages: Impressum, Datenschutz, 404. Normal scrolling document. */
 .legal {
+  width: 100%;
   max-width: 38rem;
+  margin: 0 auto;
+  padding: calc(var(--baseline) * 2) 1.5rem 0;
   font-size: 0.9375rem;
+  flex: none;
 }
 
 .legal h1 {
@@ -363,38 +630,4 @@ main {
 
 .legal .back:hover {
   color: var(--accent);
-}
-
-/* Narrow viewports: compact the entry head. Pronunciation and word class share
-   one line, the Worttrennung row goes (the headword middot already shows the
-   division), and xref notes follow their link inline instead of space-between. */
-@media (max-width: 26rem) {
-  .pron,
-  .grammar {
-    display: inline;
-  }
-
-  .pron + .grammar::before {
-    content: ' · ';
-  }
-
-  .entry-meta div:first-child {
-    display: none;
-  }
-
-  .xrefs li {
-    display: block;
-  }
-
-  .xrefs .note::before {
-    content: ' · ';
-  }
-
-  /* Inline boxes in a different face (Georgia IPA) or size (grammar, notes)
-     must not grow their line box past the 28px strut, or the grid drifts. */
-  .pron,
-  .grammar,
-  .xrefs .note {
-    line-height: 1;
-  }
 }
