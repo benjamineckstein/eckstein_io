@@ -302,15 +302,6 @@
         }
       } else wake()
     })
-    // The page ignores prefers-color-scheme by design (dark is the default
-    // regardless of OS setting), so only the explicit toggle needs to
-    // refresh the dust palette, not a system scheme change.
-    var themeToggle = document.getElementById('theme-toggle')
-    if (themeToggle) themeToggle.addEventListener('click', function () {
-      // Wait for the [data-theme] attribute flip (same tick) before reading.
-      setTimeout(palette, 0)
-    })
-
     var rt = 0
     addEventListener('resize', function () {
       clearTimeout(rt)

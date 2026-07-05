@@ -1,9 +1,7 @@
 /* eckstein.io: a black brutalist poster with one name, three links and a
-   fourth, hidden sense. Dark is the default identity, on every visit,
-   regardless of OS preference; the light variant is an explicit opt-in via
-   the toggle. Hold the cornerstone (bottom right) to see the architect grid,
-   click it to reveal the fourth sense. Legal pages share the same tokens
-   but scroll normally. */
+   fourth, hidden sense. Dark only, always, by design. Hold the cornerstone
+   (bottom right) to see the architect grid, click it to reveal the fourth
+   sense. Legal pages share the same tokens but scroll normally. */
 
 @font-face {
   font-family: 'Literata';
@@ -26,8 +24,7 @@
   --sans:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
-  /* Dark is the base palette: no data-theme attribute needed to get it. */
-  color-scheme: dark light;
+  color-scheme: dark;
   --bg: #121214;
   --ink: #f2ede3;
   --muted: #a39e93;
@@ -35,18 +32,6 @@
   --grid-line: rgba(242, 237, 227, 0.05);
   --dust: #c9c2b4;
   --accent: #34d399;
-  --accent-strong: #059669;
-}
-
-:root[data-theme='light'] {
-  color-scheme: light dark;
-  --bg: #f2eee6;
-  --ink: #16161a;
-  --muted: #5f5747;
-  --hairline: rgba(22, 22, 26, 0.2);
-  --grid-line: rgba(22, 22, 26, 0.06);
-  --dust: #6b655a;
-  --accent: #047857;
   --accent-strong: #059669;
 }
 
@@ -256,22 +241,6 @@ button:focus-visible {
   color: var(--accent);
 }
 
-.theme-toggle {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  background: linear-gradient(90deg, var(--ink) 0 50%, transparent 50% 100%);
-  cursor: pointer;
-}
-
-.theme-toggle::after {
-  content: '';
-  position: absolute;
-  inset: -15px;
-}
-
 /* The poster main: a flex column filling the fixed viewport exactly, so the
    giant letters can center themselves in the space between the masthead
    row and the numbered links via .mid's auto margins. */
@@ -293,7 +262,7 @@ button:focus-visible {
 
 h1.rows {
   font-size: clamp(2.75rem, min(23vw, 30vh), 30rem);
-  width: 3.3em;
+  width: fit-content;
   max-width: 100%;
   font-weight: 900;
   line-height: 0.84;
@@ -303,9 +272,13 @@ h1.rows {
   -webkit-user-select: none;
 }
 
+/* Flush left, ragged right, tight tracking on both lines: ECK is shorter
+   than STEIN, and that stepped silhouette is the point, the block itself
+   reads as a corner (a left wall and a top wall meeting). No justifying
+   ECK out to match STEIN's width. */
 .row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   position: relative;
 }
 

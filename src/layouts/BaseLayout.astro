@@ -31,7 +31,6 @@ const canonical = new URL(path, SITE_URL).toString()
 const dePath = '/'
 const enPath = '/en/'
 
-const themeToggleLabel = lang === 'de' ? 'Farbschema wechseln' : 'Toggle color theme'
 const cornerstoneLabel =
   lang === 'de'
     ? 'Eckstein: Klick zeigt die vierte Bedeutung, Halten zeigt das Architekturraster'
@@ -49,10 +48,7 @@ const cornerstoneLabel =
     -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="color-scheme" content="dark light" />
-    <script
-      is:inline
-    >try{if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
+    <meta name="color-scheme" content="dark" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -97,8 +93,6 @@ const cornerstoneLabel =
     <meta name="twitter:description" content={ogDescription} />
     <meta name="twitter:image" content={new URL('/og-image.png', SITE_URL).toString()} />
 
-    <!-- The site is dark by default regardless of OS preference; this tag matches
-         that default, and the theme-toggle script below overwrites it on switch. -->
     <meta name="theme-color" content="#121214" />
 
     <script type="application/ld+json" set:html={JSON.stringify(PERSON_JSON_LD)} />
@@ -142,12 +136,6 @@ const cornerstoneLabel =
               >EN</a
             >
           </nav>
-          <button
-            class="theme-toggle"
-            id="theme-toggle"
-            type="button"
-            aria-label={themeToggleLabel}
-            aria-pressed="false"></button>
         </div>
       </div>
     </header>
@@ -156,29 +144,6 @@ const cornerstoneLabel =
 
     <script is:inline>
 ;(() => {
-  var root = document.documentElement
-  var toggle = document.getElementById('theme-toggle')
-  var isDark = () => {
-    // Dark is the default identity regardless of OS preference; only an
-    // explicit data-theme="light" (set above from localStorage) opts out.
-    var cur = root.getAttribute('data-theme')
-    return cur ? cur === 'dark' : true
-  }
-  var setThemeColor = (dark) => {
-    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
-      m.setAttribute('content', dark ? '#121214' : '#f2eee6')
-    })
-  }
-  toggle.setAttribute('aria-pressed', String(isDark()))
-  if (root.getAttribute('data-theme')) setThemeColor(isDark())
-  toggle.addEventListener('click', () => {
-    var next = isDark() ? 'light' : 'dark'
-    root.setAttribute('data-theme', next)
-    toggle.setAttribute('aria-pressed', String(next === 'dark'))
-    setThemeColor(next === 'dark')
-    try { localStorage.setItem('theme', next) } catch (e) {}
-  })
-
   var stone = document.getElementById('cornerstone')
   var grid = document.getElementById('grid-overlay').classList
   var sense = document.getElementById('sense-4')
