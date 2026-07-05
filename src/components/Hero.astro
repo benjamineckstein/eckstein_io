@@ -213,6 +213,69 @@
       })
     })
 
+    // No scroll on this page, so answer the attempt instead of ignoring
+    // it. Detection runs under RM too; the physics jolt is text-only there.
+    var scrolledOnce = false,
+      lastScrollAt = -3000,
+      wheelAcc = 0
+    function scrollAnswer() {
+      var now = performance.now()
+      if (now - lastScrollAt < 3000) return
+      lastScrollAt = now
+      var msg = document.getElementById('scroll-answer')
+      if (msg && !scrolledOnce) {
+        scrolledOnce = true
+        msg.textContent = msg.dataset.msg
+        msg.classList.add('on')
+        setTimeout(function () {
+          msg.classList.remove('on')
+        }, 3000)
+      }
+      if (RM || !netBuilt) return
+      stones.forEach(function (s) {
+        var sc = Math.max(1, (s.h || 234) / 234)
+        s.jolt = Math.max(s.jolt, 9)
+        s.sq = Math.max(s.sq, 0.05)
+        burst(s.cx + s.ox, s.bot, 3, 90 * sc, false, sc)
+      })
+      fallen.rot += (Math.random() < 0.5 ? -1 : 1) * 0.05
+      wake()
+    }
+    addEventListener(
+      'wheel',
+      function (e) {
+        if (e.deltaY <= 0) return
+        wheelAcc += e.deltaY
+        if (wheelAcc > 50) {
+          wheelAcc = 0
+          scrollAnswer()
+        }
+      },
+      { passive: true }
+    )
+    var touchY = null
+    addEventListener(
+      'touchstart',
+      function (e) {
+        touchY = e.touches[0].clientY
+      },
+      { passive: true }
+    )
+    addEventListener(
+      'touchmove',
+      function (e) {
+        if (touchY == null) return
+        if (touchY - e.touches[0].clientY > 40) {
+          touchY = null
+          scrollAnswer()
+        }
+      },
+      { passive: true }
+    )
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'End') scrollAnswer()
+    })
+
     // RM: static constellation, then skip the rest.
     if (RM) {
       var rmCv = document.getElementById('dust')
@@ -384,6 +447,7 @@
         bot: 0,
         big: false,
         done: false,
+        jolt: 0,
       }
     })
     var spin = (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 3)
@@ -409,6 +473,7 @@
       bot: 0,
       big: true,
       done: false,
+      jolt: 0,
     }
     stones.push(fallen)
     var rowLeft = [3, 5]
@@ -438,7 +503,7 @@
         'translate3d(' +
         s.ox.toFixed(2) +
         'px,' +
-        (s.y + s.oy).toFixed(2) +
+        (s.y + s.oy + s.jolt).toFixed(2) +
         'px,0) scale(' +
         (1 + s.sq).toFixed(4) +
         ',' +
@@ -551,6 +616,10 @@
           s.sq *= Math.exp(-11 * dt)
           busy = true
         } else if (s.sq) s.sq = 0
+        if (s.jolt > 0.08) {
+          s.jolt *= Math.exp(-8 * dt)
+          busy = true
+        } else if (s.jolt) s.jolt = 0
         if (s.tumble && s.st === 2) {
           var dr = s.restRot - s.rot
           if (Math.abs(dr) > 0.0008 || Math.abs(s.vrot) > 0.01) {

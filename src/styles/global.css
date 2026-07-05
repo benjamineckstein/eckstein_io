@@ -373,6 +373,24 @@ nav.links {
   margin-top: clamp(10px, 2vh, 28px);
 }
 
+/* The page has no scroll, so it answers the attempt instead of ignoring
+   it: a line right under the links, in normal flow so it can never
+   overlap other content the way a fixed position risked at some sizes. */
+.scroll-answer {
+  flex: none;
+  margin-top: clamp(6px, 1.2vh, 14px);
+  font-style: italic;
+  color: var(--muted);
+  font-size: clamp(12px, 1.1vw, 16px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.scroll-answer.on {
+  opacity: 1;
+}
+
 .link {
   display: grid;
   grid-template-columns: 2.6em 1fr auto;
