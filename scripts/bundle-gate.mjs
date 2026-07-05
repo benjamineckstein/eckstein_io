@@ -9,8 +9,9 @@ import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 
-const TARGET_KB = 50
-const LIMIT_KB = 75
+// Raised deliberately by Benjamin on 2026-07-05 for the interaction feature set.
+const TARGET_KB = 52
+const LIMIT_KB = 85
 
 const dist = fileURLToPath(new URL('../dist/', import.meta.url))
 const isText = (f) => /\.(html|css|js|svg|txt|json)$/.test(f)
