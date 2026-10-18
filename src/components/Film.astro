@@ -21,6 +21,16 @@ const stripBlockComments = (s: string) =>
   s.replace(/^[ \t]*\/\*[\s\S]*?\*\/[ \t]*\n/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
 const body = [setup, page, wall, night, cut, well, run].map(stripBlockComments).join('\n')
 const code = `(()=>{'use strict';const DEV=${DEV};const ROOT=document.documentElement;ROOT.dataset.film='1';try{\n${body}\n}catch(e){ROOT.className='';const m=document.getElementById('end');if(m){m.inert=false;m.removeAttribute('aria-hidden');m.style.visibility=''}for(const id of['rp','sum']){const x=document.getElementById(id);if(x)x.hidden=true}console.error(e)}})();`
+const assertParses = (script: string) => {
+  try {
+    new Function(script)
+  } catch (error) {
+    throw new Error(
+      `the joined film script (src/film/*.js) does not parse: ${error}. A live page would quietly fall back to the static end screen. The block-comment strip is a regex, so a /* inside a string or regex cuts code up to the next */.`,
+    )
+  }
+}
+assertParses(code)
 ---
 
 <div class="sr" id="sum" hidden>
