@@ -1,38 +1,32 @@
-/* eckstein.io: a black brutalist poster with one name, three links and a
-   fourth, hidden sense. Dark only, always, by design. Hold the cornerstone
-   (bottom right) to see the architect grid, click it to reveal the fourth
-   sense. Legal pages share the same tokens but scroll normally. */
+@font-face {
+  font-family: 'Epilogue';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/epilogue-latin-300-700.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 @font-face {
-  font-family: 'Literata';
+  font-family: 'Fragment Mono';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/literata-latin-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Literata';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/literata-latin-700.woff2') format('woff2');
+  src: url('/fonts/fragment-mono-latin-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 :root {
-  --baseline: 1.75rem;
-  --sans:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-
+  --ink: #08090d;
+  --fg: #f2f1ec;
+  --mu: #a3a5b1;
+  --dim: #767885;
+  --sans: Epilogue, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono: 'Fragment Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sys: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color-scheme: dark;
-  --bg: #121214;
-  --ink: #f2ede3;
-  --muted: #a39e93;
-  --hairline: rgba(242, 237, 227, 0.16);
-  --grid-line: rgba(242, 237, 227, 0.05);
-  --dust: #c9c2b4;
-  --accent: #34d399;
-  --accent-strong: #059669;
 }
 
 * {
@@ -42,633 +36,94 @@
 }
 
 html {
-  overscroll-behavior: none;
+  background: var(--ink);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
-  font-family: 'Literata', Georgia, 'Times New Roman', serif;
-  font-synthesis: none;
-  font-size: 1rem;
-  line-height: var(--baseline);
-  background: var(--bg);
-  color: var(--ink);
-  min-height: 100svh;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
+  min-height: 100%;
+  background: var(--ink);
+  color: var(--fg);
+  font: 400 16px/1.45 var(--sans);
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-/* The two landing pages (/ and /en/): a single, never-scrolling viewport.
-   line-height resets from the legal pages' 28px prose baseline to a normal
-   relative value: at UI text sizes (12-28px) the fixed baseline wastes a
-   lot of vertical rhythm the poster's fixed-height viewport cannot spare. */
-body.poster {
-  height: 100svh;
-  height: 100dvh;
-  overflow: hidden;
-  font-family: var(--sans);
-  line-height: 1.3;
-}
-
-/* Opt back into the serif for the handful of literary/typeset flourishes
-   (tagline, dictionary mark, link hints, footer claim) inside the
-   otherwise-sans poster. On legal pages the body is already serif, so this
-   is a no-op there. */
-.serif {
-  font-family: 'Literata', Georgia, 'Times New Roman', serif;
-}
-
-/* A faint, fixed grain over the whole viewport: paper/print texture for the
-   poster identity. Cheap (inline data URI, no request) and subtle enough to
-   stay out of the way of legal-page reading. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 45;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-::selection {
-  background: var(--accent-strong);
-  color: var(--bg);
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
 
 a {
-  color: var(--accent);
+  color: inherit;
 }
 
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
-/* Architect grid: faint at rest (the poster's construction-drawing texture),
-   brightened while the cornerstone is held. Absolute, not fixed, so on
-   legal pages it spans the full scrollable document, not just one screen. */
-.grid-overlay {
+.sr {
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.6;
-  transition: opacity 0.35s ease;
-  background-image:
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size:
-    clamp(48px, 8vw, 120px) clamp(48px, 8vw, 120px);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.grid-overlay.on {
-  opacity: 1;
+:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 4px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .grid-overlay,
-  .psalm,
-  .link,
-  .cornerstone {
-    transition: none;
-  }
-}
-
-/* The cornerstone / fallen stone: an emerald square flush to the bottom
-   right corner on every page. On the two landing pages it is the stone
-   that drops out of the headline and tumbles into place; everywhere else,
-   and under reduced motion, it simply sits there. Click reveals the fourth,
-   biblical sense; holding brightens the architect grid. */
-.cornerstone {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  z-index: 20;
-  width: clamp(48px, 7vh, 64px);
-  height: clamp(48px, 7vh, 64px);
-  border: none;
-  background: var(--accent-strong);
-  cursor: pointer;
-  touch-action: none;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-  will-change: transform;
-}
-
-@media (hover: hover) {
-  .cornerstone:hover {
-    filter: brightness(1.15);
-  }
-}
-
-/* Top-left masthead: name and role, poster pages only. */
-.masthead {
-  position: fixed;
-  top: 1.25rem;
-  left: 1.5rem;
-  z-index: 15;
-  font-family: var(--sans);
-  pointer-events: none;
-}
-
-.name {
-  font-weight: 700;
-  font-size: clamp(13px, 1.2vw, 17px);
-  letter-spacing: 0.02em;
-  color: var(--ink);
-}
-
-.role {
-  color: var(--accent);
-  font-weight: 700;
-  font-size: clamp(11px, 1vw, 14px);
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  margin-top: 3px;
-}
-
-/* Top-right chrome: coordinates (poster pages only) stacked above the
-   language switch and theme toggle, present on every page. */
-.top-right {
-  position: fixed;
-  top: 1.25rem;
-  right: 1.5rem;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.4rem;
-  font-family: var(--sans);
-}
-
-.geo {
-  color: var(--muted);
-  font-size: clamp(10px, 0.9vw, 12px);
-  letter-spacing: 0.1em;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.lang-switch a {
-  color: var(--muted);
-  text-decoration: none;
-  display: inline-block;
-  padding: 14px 3px;
-  margin: -14px -1px;
-}
-
-.lang-switch a[aria-current='page'] {
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.lang-switch a:hover {
-  color: var(--accent);
-}
-
-/* The poster main: a flex column filling the fixed viewport exactly, so the
-   giant letters can center themselves in the space between the masthead
-   row and the numbered links via .mid's auto margins. */
-.entry {
-  flex: 1 1 auto;
-  min-height: 0;
+.legal {
   width: 100%;
-  max-width: 1800px;
+  max-width: 38rem;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  padding: clamp(56px, 7vh, 80px) clamp(16px, 3vw, 56px) clamp(10px, 1.5vh, 20px);
+  padding: 64px 24px 0;
+  font: 400 16px/1.65 var(--sans);
 }
 
-.mid {
-  margin: auto 0;
-  position: relative;
+.legal h1 {
+  margin-top: 24px;
+  font-size: clamp(32px, 4.5vw, 44px);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
-h1.rows {
-  font-size: clamp(2.75rem, min(25vw, 31vh), 34rem);
-  width: fit-content;
-  max-width: 100%;
-  font-weight: 900;
-  line-height: 0.84;
-  position: relative;
-  color: var(--ink);
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Flush left, ragged right, tight tracking on both lines: ECK is shorter
-   than STEIN, and that stepped silhouette is the point, the block itself
-   reads as a corner (a left wall and a top wall meeting). No justifying
-   ECK out to match STEIN's width. */
-.row {
-  display: flex;
-  justify-content: flex-start;
-  position: relative;
-}
-
-.row + .row {
-  margin-top: 0.05em;
-}
-
-.st {
-  display: block;
-  will-change: transform;
-  transform-origin: 50% 88%;
-  cursor: pointer;
-}
-
-/* The lithophone's reduced-motion fallback: no physics jolt, just a brief
-   tick. Sound plays regardless, this is purely visual feedback. */
-@keyframes tick {
-  50% {
-    opacity: 0.55;
-  }
-}
-
-.struck {
-  animation: tick 0.15s ease;
-}
-
-.row::after {
-  content: '';
-  position: absolute;
-  left: 0.02em;
-  right: 0.02em;
-  bottom: -0.05em;
-  height: 2px;
-  background: var(--hairline);
-  transform-origin: 0 50%;
-  transition: transform 0.8s cubic-bezier(0.72, 0, 0.18, 1);
-}
-
-html.anim .row::after {
-  transform: scaleX(0);
-}
-
-html.anim .row.set::after {
-  transform: scaleX(1);
-}
-
-.dict {
-  position: absolute;
-  right: 0;
-  bottom: -1.7em;
-  font-size: clamp(12px, 1.05vw, 16px);
-  font-style: italic;
-  color: var(--muted);
-}
-
-.tag {
-  margin-top: clamp(26px, 3vh, 34px);
-  font-style: italic;
-  color: var(--muted);
-  font-size: clamp(13px, 1.25vw, 19px);
-  max-width: 36em;
-}
-
-/* The fourth, hidden sense: revealed by a click on the cornerstone, near
-   the tagline rather than pinned to the corner (unlike the base prototype). */
-.psalm {
-  margin-top: clamp(6px, 1.2vh, 12px);
-  font-style: italic;
-  color: var(--accent);
-  font-size: clamp(12.5px, 1.15vw, 17px);
-  max-width: 34em;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.psalm[hidden] {
-  display: none;
-}
-
-.psalm.on {
-  opacity: 1;
-}
-
-.psalm .sense-label {
-  color: var(--muted);
-  font-style: normal;
-}
-
-/* Numbered link list. */
-nav.links {
-  flex: none;
-  margin-top: clamp(10px, 2vh, 28px);
-}
-
-/* The page has no scroll, so it answers the attempt instead of ignoring
-   it: fixed to the viewport, not normal flow, since this page's whole
-   layout is tuned to exactly fill the viewport with no spare room; any
-   reserved flow space here risked pushing content past the fold on
-   untested sizes, invisible regardless of opacity. Its exact top offset
-   is set in JS from nav.links' own live position, so it also can't
-   land on top of the links the way a fixed guess at one offset did. */
-.scroll-answer {
-  position: fixed;
-  left: clamp(16px, 3vw, 56px);
-  right: clamp(16px, 3vw, 56px);
-  top: 80vh;
-  margin: 0;
-  font-style: italic;
-  color: var(--muted);
-  font-size: clamp(12px, 1.1vw, 16px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.6s ease;
-  z-index: 11;
-}
-
-.scroll-answer.on {
-  opacity: 1;
-}
-
-.link {
-  display: grid;
-  grid-template-columns: 2.6em 1fr auto;
-  align-items: baseline;
-  gap: 0.7em;
-  text-decoration: none;
-  color: var(--ink);
-  border-top: 1px solid var(--hairline);
-  padding: clamp(8px, 1.3vh, 15px) clamp(2px, 0.5vw, 10px);
-  font-size: clamp(16px, 1.3vw, 28px);
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  transition:
-    background 0.18s ease-out,
-    color 0.18s ease-out,
-    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@media (max-width: 420px) {
-  .link {
-    grid-template-columns: 2.2em 1fr;
-    row-gap: 1px;
-  }
-
-  .hint {
-    grid-column: 2;
-    text-align: left;
-  }
-}
-
-.link:last-child {
-  border-bottom: 1px solid var(--hairline);
-}
-
-.idx {
-  color: var(--accent);
-  font-size: 0.6em;
-  letter-spacing: 0.12em;
-  font-variant-numeric: tabular-nums;
-}
-
-.hint {
-  color: var(--muted);
-  font-size: clamp(11px, 1vw, 15px);
-  font-style: italic;
-  font-weight: 400;
-  text-align: right;
-}
-
-@media (hover: hover) {
-  .link:hover {
-    background: var(--accent-strong);
-    color: var(--bg);
-    transform: translateX(0.35em);
-  }
-
-  .link:hover .idx,
-  .link:hover .hint {
-    color: var(--bg);
-  }
-}
-
-.link:active {
-  transform: translateX(0.35em) scale(0.995);
-}
-
-/* Wide viewports (>=1400px): the numbered links become one row of three
-   columns at the bottom of the poster instead of stacking full width.
-   A stretched full-width row stops reading as one line at this size,
-   label and hint sit too far apart; three narrow columns keep each
-   link readable while still using the width. */
-@media (min-width: 1400px) {
-  /* ECKSTEIN becomes one line, edge to edge, the two rows sitting side
-     by side instead of stacked. Entry drops its width cap so the line
-     can use the full viewport; the entrance physics and the lithophone
-     read the same "*.st" elements either way, so nothing else changes. */
-  .entry {
-    max-width: none;
-  }
-
-  h1.rows {
-    display: flex;
-    gap: 0;
-    align-items: baseline;
-    font-size: clamp(3rem, 19.3vw, 46rem);
-  }
-
-  .row + .row {
-    margin-top: 0;
-  }
-
-  /* One line reads as one rule: each row still draws its own underline
-     segment (the entrance script staggers them), so close the insets on
-     the touching inner edges instead of the gap showing at the K/S seam. */
-  .row:first-child::after {
-    right: 0;
-  }
-
-  .row + .row::after {
-    left: 0;
-  }
-
-  nav.links {
-    display: flex;
-    gap: clamp(24px, 3vw, 64px);
-  }
-
-  /* The one-liner headline now dominates the block .mid centers between
-     masthead and nav; give the tagline a touch more presence to match that
-     scale (was sized for the two-line corner layout), which also eats into
-     the gap it leaves below without upsetting the centering itself. The
-     36em cap on .tag was sized for that old layout too and forces an ugly
-     wrap here (a lone trailing word alone on its own line), now that there
-     is easily enough width for the whole sentence on one line. */
-  .tag {
-    font-size: clamp(14px, 1.5vw, 22px);
-    max-width: none;
-  }
-
-  .link {
-    flex: 1 1 0;
-    grid-template-columns: 2.4em 1fr;
-  }
-
-  .hint {
-    grid-column: 2;
-    text-align: left;
-  }
-}
-
-/* Bottom baseline rule. Full width by default (reduced motion, no JS):
-   already-drawn, matching the settled entrance frame. On the two landing
-   pages with JS and motion enabled, the entrance script starts it at
-   scaleX(0) and paints it in as the rolling stone's trail instead. */
-.base-rule {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: var(--accent-strong);
-  z-index: 10;
-  transform-origin: 0 50%;
-}
-
-html.anim .fadein {
-  opacity: 0;
-  animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.d1 {
-  animation-delay: 0.85s;
-}
-.d2 {
-  animation-delay: 1.5s;
-}
-.d3 {
-  animation-delay: 1.62s;
-}
-.d4 {
-  animation-delay: 1.74s;
-}
-.d5 {
-  animation-delay: 1.86s;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html.anim .fadein {
-    animation: none;
-    opacity: 1;
-  }
-
-  html.anim .row::after {
-    transform: scaleX(1);
-    transition: none;
-  }
-}
-
-/* Short landscape viewports (~380px tall): drop tertiary elements, not the
-   name, the letters, the tagline or the links. */
-@media (max-height: 540px) {
-  .tag,
-  .dict,
-  .geo,
-  .psalm {
-    display: none;
-  }
-
-  h1.rows {
-    font-size: clamp(2.25rem, min(22vw, 20vh), 22rem);
-  }
-
-  .entry {
-    padding-top: clamp(48px, 8vh, 72px);
-  }
-
-  nav.links {
-    margin-top: clamp(8px, 2vh, 18px);
-  }
-}
-
-@media (max-width: 319px) {
-  /* Below the 320px floor viewport width: the coordinates are decorative
-     flavor, the name is identity. If anything has to go, it is not the name. */
-  .geo {
-    display: none;
-  }
-}
-
-/* Tall, narrow viewports (tall phones in portrait): width, not height, caps
-   the letters, so .mid's auto-centering used to leave a large dead band
-   between the tagline and the links. Grow the letters within the width
-   budget, drop the auto-centering so the block sits right under the
-   masthead, and push any leftover space to the bottom of the viewport
-   (below the links, above the footer) where slack reads as intentional
-   breathing room instead of a hole in the middle of the content. */
-@media (max-width: 480px) and (min-height: 700px) {
-  h1.rows {
-    font-size: clamp(3.25rem, 33vw, 15rem);
-  }
-
-  .mid {
-    margin: 0;
-  }
-
-  .tag {
-    margin-top: clamp(20px, 4vh, 40px);
-  }
-
-  nav.links {
-    margin-top: clamp(28px, 5vh, 56px);
-  }
-}
-
-#dust {
-  position: fixed;
-  inset: 0;
-  z-index: 12;
-  pointer-events: none;
-}
-
-/* Footer, shared by the poster pages and the legal pages. */
-.site-footer {
-  flex: none;
-  width: 100%;
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: 0 clamp(16px, 3vw, 56px) clamp(10px, 2vh, 20px);
-  padding-right: clamp(80px, 10vw, 104px);
-  font-size: 0.8125rem;
+.legal h2 {
+  margin-top: 40px;
+  font-size: 17px;
+  font-weight: 500;
   line-height: 1.4;
-  color: var(--muted);
 }
 
-body:not(.poster) .site-footer {
-  max-width: 40rem;
-  margin: var(--baseline) auto 0;
-  padding: 0 1.5rem var(--baseline);
-  padding-right: clamp(80px, 20vw, 104px);
+.legal p,
+.legal ul {
+  margin-top: 1em;
+}
+
+.legal ul {
+  padding-left: 1.5em;
+}
+
+.legal a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal .back {
+  color: var(--mu);
+  text-decoration: none;
+}
+
+.legal .back:hover {
+  color: var(--fg);
+}
+
+.site-footer {
+  width: 100%;
+  max-width: 38rem;
+  margin: 48px auto 0;
+  padding: 0 24px 40px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--dim);
 }
 
 .site-footer a {
@@ -680,44 +135,5 @@ body:not(.poster) .site-footer {
 }
 
 .footer-microcopy {
-  margin-top: 0.25rem;
-}
-
-/* Legal pages: Impressum, Datenschutz, 404. Normal scrolling document. */
-.legal {
-  width: 100%;
-  max-width: 38rem;
-  margin: 0 auto;
-  padding: calc(var(--baseline) * 2) 1.5rem 0;
-  font-size: 0.9375rem;
-  flex: none;
-}
-
-.legal h1 {
-  font-size: 1.5rem;
-  line-height: calc(var(--baseline) * 2);
-}
-
-.legal h2 {
-  font-size: 1.0625rem;
-  margin-top: var(--baseline);
-}
-
-.legal p,
-.legal ul {
-  margin-top: var(--baseline);
-}
-
-.legal ul {
-  list-style: disc;
-  padding-left: 1.5rem;
-}
-
-.legal .back {
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.legal .back:hover {
-  color: var(--accent);
+  margin-top: 4px;
 }

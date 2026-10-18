@@ -1,48 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import Hero from '../components/Hero.astro'
-import Footer from '../components/Footer.astro'
-import { CODEWITHAGENTS_URL, KI_SYNDIKAT_URL, CONTACT_EMAIL } from '../lib/site'
+import EndScreen from '../components/EndScreen.astro'
+import { COPY } from '../lib/copy'
+
+const c = COPY.de
 ---
 
 <BaseLayout
   lang="de"
-  title="Eckstein, der | Benjamin Eckstein"
-  description="Eckstein, der: Benjamin Eckstein, Agentic Engineer aus Kleinmachnow bei Berlin. Benjamin schreibt seit zwanzig Jahren Software, jetzt bringt er es Maschinen bei."
-  ogTitle="Eck·stein, der"
-  ogDescription="Ein Wörterbucheintrag für einen Namen, der zur Grundlage wurde."
+  title={c.title}
+  description={c.description}
+  ogTitle={c.ogTitle}
+  ogDescription={c.ogDescription}
   path="/"
-  poster
+  film
 >
-  <main class="entry">
-    <Hero>
-      <p class="tag serif fadein d2">
-        Benjamin schreibt seit zwanzig Jahren Software. Jetzt bringt er es Maschinen bei.
-      </p>
-      <p id="sense-4" class="psalm serif" hidden>
-        <span class="sense-label">‹biblisch›</span> der Stein, den die Bauleute verworfen haben; er
-        ist zum Eckstein geworden <span class="sense-label">‹Psalm 118,22›</span>
-      </p>
-    </Hero>
-    <nav class="links" aria-label="Links">
-      <a class="link fadein d3" href={CODEWITHAGENTS_URL}>
-        <span class="idx">01</span><span>codewithagents.de</span><span class="hint serif"
-          >Arbeit, Blog, OSS</span
-        >
-      </a>
-      <a class="link fadein d4" href={KI_SYNDIKAT_URL}>
-        <span class="idx">02</span><span>ki-syndikat.de</span><span class="hint serif"
-          >Community, Mitgründer</span
-        >
-      </a>
-      <a class="link fadein d5" href={`mailto:${CONTACT_EMAIL}`}>
-        <span class="idx">03</span><span>{CONTACT_EMAIL}</span><span class="hint serif"
-          >Kontakt</span
-        >
-      </a>
-    </nav>
-    <p id="scroll-answer" class="scroll-answer" aria-live="polite" data-msg="Mehr gibt es nicht. Nur ein Stein."
-    ></p>
-  </main>
-  <Footer lang="de" />
+  <EndScreen lang="de" />
 </BaseLayout>

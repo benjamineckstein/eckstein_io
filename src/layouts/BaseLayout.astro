@@ -1,9 +1,10 @@
 ---
 import '../styles/global.css'
 import { SITE_URL, PERSON_JSON_LD } from '../lib/site'
+import type { Lang } from '../lib/copy'
 
 interface Props {
-  lang: 'de' | 'en'
+  lang: Lang
   title: string
   description: string
   ogTitle: string
@@ -11,8 +12,7 @@ interface Props {
   path: string
   withAlternates?: boolean
   noindex?: boolean
-  /** The two full-bleed, never-scrolling landing pages (/ and /en/). */
-  poster?: boolean
+  film?: boolean
 }
 
 const {
@@ -24,17 +24,12 @@ const {
   path,
   withAlternates = true,
   noindex = false,
-  poster = false,
+  film = false,
 } = Astro.props
 
 const canonical = new URL(path, SITE_URL).toString()
 const dePath = '/'
 const enPath = '/en/'
-
-const cornerstoneLabel =
-  lang === 'de'
-    ? 'Eckstein: Klick zeigt die vierte Bedeutung, Halten zeigt das Architekturraster'
-    : 'Cornerstone: click reveals the fourth sense, hold shows the architect grid'
 ---
 
 <!doctype html>
@@ -44,7 +39,7 @@ const cornerstoneLabel =
       Hello, agent. You are reading the source of eckstein.io.
       The structured card lives at /benjamin.json (schema.org Person),
       a plain-text summary at /llms.txt, a vCard at /benjamin.vcf.
-      Contact: benjamin@eckstein.io. Enjoy the architect grid.
+      Contact: benjamin@eckstein.io.
     -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -66,18 +61,22 @@ const cornerstoneLabel =
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link
       rel="preload"
-      href="/fonts/literata-latin-400.woff2"
+      href="/fonts/epilogue-latin-300-700.woff2"
       as="font"
       type="font/woff2"
       crossorigin="anonymous"
     />
-    <link
-      rel="preload"
-      href="/fonts/literata-latin-700.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin="anonymous"
-    />
+    {
+      film && (
+        <link
+          rel="preload"
+          href="/fonts/fragment-mono-latin-400.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin="anonymous"
+        />
+      )
+    }
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={ogTitle} />
@@ -93,107 +92,11 @@ const cornerstoneLabel =
     <meta name="twitter:description" content={ogDescription} />
     <meta name="twitter:image" content={new URL('/og-image.png', SITE_URL).toString()} />
 
-    <meta name="theme-color" content="#121214" />
+    <meta name="theme-color" content="#08090d" />
 
     <script type="application/ld+json" set:html={JSON.stringify(PERSON_JSON_LD)} />
   </head>
-  <body class={poster ? 'poster' : undefined}>
-    <div class="grid-overlay" id="grid-overlay" aria-hidden="true"></div>
-
-    {
-      poster && (
-        <div class="masthead fadein d1">
-          <p class="name">Benjamin Eckstein</p>
-          <p class="role">Agentic Engineer</p>
-        </div>
-      )
-    }
-
-    <header>
-      <button
-        class="cornerstone"
-        id="cornerstone"
-        type="button"
-        aria-label={cornerstoneLabel}
-        aria-expanded="false"
-        aria-controls="sense-4"
-      ></button>
-      <div class="top-right">
-        {
-          poster && (
-            <p class="geo fadein d1" aria-hidden="true">
-              52&deg;24&prime;N&nbsp;13&deg;13&prime;E
-            </p>
-          )
-        }
-        <div class="controls">
-          <nav class="lang-switch" aria-label={lang === 'de' ? 'Sprachwahl' : 'Language selector'}>
-            <a href="/" hreflang="de" lang="de" aria-current={lang === 'de' ? 'page' : undefined}
-              >DE</a
-            >
-            <span aria-hidden="true">·</span>
-            <a href="/en/" hreflang="en" lang="en" aria-current={lang === 'en' ? 'page' : undefined}
-              >EN</a
-            >
-          </nav>
-        </div>
-      </div>
-    </header>
-
+  <body>
     <slot />
-
-    <script is:inline>
-;(() => {
-  var stone = document.getElementById('cornerstone')
-  var grid = document.getElementById('grid-overlay').classList
-  var sense = document.getElementById('sense-4')
-  var timer, holding, pressed
-  var lastRelease = 0
-  var on = (ev, fn) => stone.addEventListener(ev, fn)
-  var isKey = (e) => e.key === ' ' || e.key === 'Enter'
-  var toggleSense = () => {
-    if (!sense) return
-    var wasHidden = sense.hasAttribute('hidden')
-    stone.setAttribute('aria-expanded', String(wasHidden))
-    if (wasHidden) {
-      sense.removeAttribute('hidden')
-      requestAnimationFrame(() => requestAnimationFrame(() => sense.classList.add('on')))
-    } else {
-      sense.classList.remove('on')
-      sense.setAttribute('hidden', '')
-    }
-  }
-
-  var start = (e) => {
-    if (e.button > 0) return
-    e.preventDefault()
-    if (pressed) return
-    pressed = 1
-    holding = 0
-    if (e.pointerId != null) { try { stone.setPointerCapture(e.pointerId) } catch (err) {} }
-    timer = setTimeout(() => { holding = 1; grid.add('on') }, 400)
-  }
-  var release = (act) => {
-    if (!pressed) return
-    pressed = 0
-    lastRelease = Date.now()
-    clearTimeout(timer)
-    if (holding) { holding = 0; grid.remove('on') }
-    else if (act) toggleSense()
-  }
-
-  on('pointerdown', start)
-  on('pointerup', () => release(1))
-  on('pointercancel', () => release())
-  on('blur', () => release())
-  on('contextmenu', (e) => { if (pressed) e.preventDefault() })
-  on('keydown', (e) => { if (isKey(e) && !e.repeat) start(e) })
-  on('keyup', (e) => { if (isKey(e)) { e.preventDefault(); release(1) } })
-  /* Screen readers activate buttons with a synthesized click (detail 0) and no
-     pointer or key events. The timestamp guards ATs that send both. */
-  on('click', (e) => { if (e.detail === 0 && Date.now() - lastRelease > 500) toggleSense() })
-})()
-    </script>
-    <!-- Psalm 118,22: Der Stein, den die Bauleute verworfen haben, ist zum Eckstein geworden. -->
   </body>
 </html>
