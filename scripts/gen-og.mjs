@@ -1,83 +1,181 @@
-// One-off generator for public/og-image.png (1200x630).
-// Builds an HTML rendition of the dictionary entry with the site fonts
-// embedded as data URIs, then screenshots it with headless Chrome.
-// Run locally: node scripts/gen-og.mjs
-// Not part of the build. The PNG is committed.
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs'
-import { execFileSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
+import { spawn } from 'node:child_process'
+import { once } from 'node:events'
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { extname, join, sep } from 'node:path'
+import { setTimeout as sleep } from 'node:timers/promises'
+import { fileURLToPath } from 'node:url'
+
+const OG_WIDTH = 1200
+const OG_HEIGHT = 630
+const READY_TIMEOUT_MS = 15_000
+const POLL_MS = 100
+const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+const END_SCREEN_SHOWN =
+  "document.getElementById('end') !== null && getComputedStyle(document.getElementById('end')).visibility === 'visible'"
+
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.woff2': 'font/woff2',
+  '.txt': 'text/plain; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
+  '.vcf': 'text/vcard; charset=utf-8',
+}
 
 const root = fileURLToPath(new URL('..', import.meta.url))
-const font = (f) =>
-  `data:font/woff2;base64,${readFileSync(join(root, 'public/fonts', f)).toString('base64')}`
+const dist = join(root, 'dist')
+const target = join(root, 'public/og-image.png')
+const unanswered = []
 
-const html = `<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<style>
-  @font-face { font-family: Literata; font-weight: 400; src: url(${font('literata-latin-400.woff2')}) format('woff2'); }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    width: 1200px; height: 630px; overflow: hidden;
-    background: #121214; color: #f2ede3;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-    padding: 60px 68px;
-    position: relative;
+async function serveFromDist(req, res) {
+  const { pathname } = new URL(req.url, 'http://127.0.0.1')
+  const file = join(dist, pathname.replace(/\/$/, '/index.html'))
+  const type = MIME_TYPES[extname(file)]
+  const body = type && file.startsWith(dist + sep) ? await readFile(file).catch(() => null) : null
+  if (body === null) {
+    unanswered.push(pathname)
+    res.writeHead(404).end()
+    return
   }
-  .name { font-weight: 700; font-size: 26px; letter-spacing: 0.01em; }
-  .role {
-    color: #34d399; font-weight: 700; font-size: 17px; letter-spacing: 0.28em;
-    text-transform: uppercase; margin-top: 6px;
-  }
-  h1 {
-    font-weight: 900; font-size: 188px; line-height: 0.84;
-    margin-top: 16px; position: relative; width: fit-content;
-  }
-  .row { display: flex; gap: 0.28em; }
-  .row + .row { margin-top: 0.04em; }
-  .dict {
-    position: absolute; right: 4px; bottom: -0.5em;
-    font-family: Literata, Georgia, serif; font-style: italic;
-    font-size: 22px; color: #a39e93;
-  }
-  .tag {
-    font-family: Literata, Georgia, serif; font-style: italic;
-    color: #a39e93; font-size: 25px; margin-top: 26px;
-  }
-  .domain { position: absolute; left: 68px; bottom: 34px; font-size: 22px; color: #a39e93; }
-  .stone { position: absolute; right: 0; bottom: 0; width: 56px; height: 56px; background: #059669; }
-</style>
-</head>
-<body>
-  <p class="name">Benjamin Eckstein</p>
-  <p class="role">Agentic Engineer</p>
-  <h1>
-    <span class="row">ECK</span>
-    <span class="row">STEIN</span>
-    <span class="dict">der; -s, -e</span>
-  </h1>
-  <p class="tag">Schreibt seit zwanzig Jahren Software. Bringt es jetzt Maschinen bei.</p>
-  <p class="domain">eckstein.io</p>
-  <div class="stone"></div>
-</body>
-</html>`
+  res.writeHead(200, { 'content-type': type }).end(body)
+}
 
-const dir = mkdtempSync(join(tmpdir(), 'og-'))
-const page = join(dir, 'og.html')
-writeFileSync(page, html)
+function connectToDevtools(url) {
+  const socket = new WebSocket(url)
+  const replies = new Map()
+  const eventListeners = []
+  const opened = new Promise((resolve, reject) => {
+    socket.onopen = resolve
+    socket.onerror = () => reject(new Error(`could not connect to DevTools at ${url}`))
+  })
+  let lastId = 0
+  socket.onmessage = ({ data }) => {
+    const message = JSON.parse(data)
+    if (message.id === undefined) {
+      eventListeners.forEach((listener) => listener(message))
+      return
+    }
+    replies.get(message.id)(message)
+    replies.delete(message.id)
+  }
+  async function send(method, params = {}, sessionId) {
+    await opened
+    const id = ++lastId
+    const reply = new Promise((resolve) => replies.set(id, resolve))
+    socket.send(JSON.stringify({ id, method, params, sessionId }))
+    const { result, error } = await reply
+    if (error) throw new Error(`${method} failed: ${error.message}`)
+    return result
+  }
+  return { send, eventListeners, close: () => socket.close() }
+}
 
-const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const out = join(root, 'public/og-image.png')
-execFileSync(chrome, [
-  '--headless=new',
-  '--disable-gpu',
-  '--force-device-scale-factor=1',
-  '--window-size=1200,630',
-  '--hide-scrollbars',
-  `--screenshot=${out}`,
-  `file://${page}`,
-])
-console.log(`written: ${out}`)
+async function launchChrome(profile) {
+  const chrome = spawn(
+    CHROME,
+    [
+      '--headless=new',
+      `--user-data-dir=${profile}`,
+      '--hide-scrollbars',
+      '--force-prefers-reduced-motion',
+      '--remote-debugging-port=0',
+      'about:blank',
+    ],
+    { stdio: ['ignore', 'ignore', 'pipe'] },
+  )
+  const devtoolsUrl = await new Promise((resolve, reject) => {
+    let log = ''
+    chrome.stderr.on('data', (chunk) => {
+      log += chunk
+      const match = log.match(/DevTools listening on (ws:\/\/\S+)/)
+      if (match) resolve(match[1])
+    })
+    chrome.once('exit', (code) => reject(new Error(`Chrome exited with ${code} before DevTools was up`)))
+  })
+  return { chrome, devtoolsUrl }
+}
+
+async function waitFor(condition, what) {
+  const deadline = Date.now() + READY_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    if (await condition()) return
+    await sleep(POLL_MS)
+  }
+  throw new Error(`timed out waiting for ${what}`)
+}
+
+async function captureEndScreen(origin, devtoolsUrl) {
+  const browser = connectToDevtools(devtoolsUrl)
+  const pageErrors = []
+  browser.eventListeners.push(({ method, params }) => {
+    if (method === 'Runtime.exceptionThrown') {
+      pageErrors.push(params.exceptionDetails.exception?.description ?? params.exceptionDetails.text)
+    }
+    if (method === 'Runtime.consoleAPICalled' && params.type === 'error') {
+      pageErrors.push(params.args.map((arg) => arg.value ?? arg.description).join(' '))
+    }
+  })
+  const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' })
+  const { sessionId } = await browser.send('Target.attachToTarget', { targetId, flatten: true })
+  const page = (method, params) => browser.send(method, params, sessionId)
+  const evaluate = async (expression) =>
+    (await page('Runtime.evaluate', { expression, returnByValue: true })).result.value
+
+  await page('Runtime.enable')
+  await page('Emulation.setDeviceMetricsOverride', {
+    width: OG_WIDTH,
+    height: OG_HEIGHT,
+    deviceScaleFactor: 1,
+    mobile: false,
+  })
+  await page('Page.navigate', { url: `${origin}/` })
+  await waitFor(() => evaluate(END_SCREEN_SHOWN), 'the end screen to show')
+
+  const [width, height] = await evaluate('[innerWidth, innerHeight]')
+  if (width !== OG_WIDTH || height !== OG_HEIGHT) {
+    throw new Error(`the film measured a ${width}x${height} viewport, not ${OG_WIDTH}x${OG_HEIGHT}`)
+  }
+  const { data } = await page('Page.captureScreenshot', { format: 'png' })
+  browser.close()
+  return { png: Buffer.from(data, 'base64'), pageErrors }
+}
+
+if (!existsSync(join(dist, 'index.html'))) {
+  console.error('run pnpm build first')
+  process.exit(1)
+}
+
+const server = createServer(serveFromDist)
+await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+const profile = mkdtempSync(join(tmpdir(), 'og-'))
+let chrome
+
+try {
+  const launched = await launchChrome(profile)
+  chrome = launched.chrome
+  const origin = `http://127.0.0.1:${server.address().port}`
+  const { png, pageErrors } = await captureEndScreen(origin, launched.devtoolsUrl)
+  if (unanswered.length > 0) {
+    throw new Error(`the page asked for files dist/ does not serve: ${unanswered.join(', ')}`)
+  }
+  if (pageErrors.length > 0) {
+    throw new Error(`the page logged errors: ${pageErrors.join(' | ')}`)
+  }
+  writeFileSync(target, png)
+} finally {
+  if (chrome && chrome.exitCode === null && chrome.signalCode === null) {
+    chrome.kill()
+    await once(chrome, 'exit')
+  }
+  server.close()
+  rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+}
+
+console.log(`written: ${target}`)

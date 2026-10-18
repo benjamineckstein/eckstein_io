@@ -50,6 +50,12 @@ The film's source is `src/film/*.js`, seven parts that `src/components/Film.astr
 one inline script. `pnpm dev` and `FILM_DEV=1 pnpm build` switch on the review hooks
 (`?t=<seconds>` seeks, `?perf=1`, `window.__m`); the plain build that CI runs leaves them out.
 
+`scripts/gen-og.mjs` is a one-off generator, not part of the build; the PNG is committed. It
+serves `dist/` locally and screenshots the German end screen at 1200x630 as a reduced-motion
+visitor sees it, in headless Chrome (macOS default path) over DevTools, with Node 22 or newer.
+The viewport is set through DevTools, not `--window-size`: in headless Chrome a 1200x630
+window gives a 1200x543 page, and the film lays itself out for the page it measures.
+
 The footer of the legal pages and the 404 page shows the short hash of the commit the build
 was made from (`git rev-parse`, executed at build time in `src/lib/site.ts`, falls back to
 "dev").
