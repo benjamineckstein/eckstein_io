@@ -30,6 +30,8 @@ const {
 const canonical = new URL(path, SITE_URL).toString()
 const dePath = '/'
 const enPath = '/en/'
+const RUN_SNIPPET =
+  "(()=>{const R=document.documentElement;R.classList.add('run');document.addEventListener('DOMContentLoaded',()=>{if(!R.dataset.film)R.classList.remove('run')})})()"
 ---
 
 <!doctype html>
@@ -44,6 +46,7 @@ const enPath = '/en/'
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
+    {film && <script is:inline set:html={RUN_SNIPPET}></script>}
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />

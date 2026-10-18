@@ -1,0 +1,40 @@
+---
+import setup from '../film/setup.js?raw'
+import page from '../film/page.js?raw'
+import wall from '../film/wall.js?raw'
+import night from '../film/night.js?raw'
+import cut from '../film/cut.js?raw'
+import well from '../film/well.js?raw'
+import run from '../film/run.js?raw'
+import '../styles/film.css'
+import { COPY, NAME, type Lang } from '../lib/copy'
+import { KI_SYNDIKAT_URL, CONTACT_EMAIL } from '../lib/site'
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+const c = COPY[lang]
+const DEV = import.meta.env.DEV || process.env.FILM_DEV === '1'
+const stripBlockComments = (s: string) =>
+  s.replace(/^[ \t]*\/\*[\s\S]*?\*\/[ \t]*\n/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
+const body = [setup, page, wall, night, cut, well, run].map(stripBlockComments).join('\n')
+const code = `(()=>{'use strict';const DEV=${DEV};const ROOT=document.documentElement;ROOT.dataset.film='1';try{\n${body}\n}catch(e){ROOT.className='';const m=document.getElementById('end');if(m){m.inert=false;m.removeAttribute('aria-hidden');m.style.visibility=''}for(const id of['rp','sum']){const x=document.getElementById(id);if(x)x.hidden=true}console.error(e)}})();`
+---
+
+<div class="sr" id="sum" hidden>
+  <h1>{NAME}</h1><p>{c.role}.</p><p>{c.line.join(' ')}</p>
+  <ul><li><a href={c.cwa} tabindex="-1">codewithagents.de</a>: {c.hints[0]}</li><li><a href={KI_SYNDIKAT_URL} tabindex="-1">ki-syndikat.de</a>: {c.hints[1]}</li><li><a href={`mailto:${CONTACT_EMAIL}`} tabindex="-1">{CONTACT_EMAIL}</a>: {c.hints[2]}</li></ul>
+</div>
+<canvas id="cv" aria-hidden="true"></canvas>
+<div id="tl" aria-hidden="true">
+<div id="pill"><span class="pl"><svg viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13" stroke="#5f5f6a" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></span><span class="tx"><span class="ty"></span><span class="ca"></span><span class="ph" data-k="ph"></span></span><span class="sd"><svg viewBox="0 0 24 24"><path d="M12 18.5V6M6.5 11.2 12 5.7l5.5 5.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><b></b></span></div>
+<div id="band"></div>
+<div class="bt"><span id="bt1"></span></div>
+<div class="bt b2"><span id="bt2"></span></div>
+<div id="cards"></div>
+<div id="hud"><div></div><div></div><div></div></div>
+</div>
+<button type="button" id="skip">{c.skip}</button>
+<script is:inline set:html={code}></script>
