@@ -1,7 +1,7 @@
 /* ---------- DOM: prompt, band, HUD (counter, changelog, clock), night cards, deploy, end frame ---------- */
 const E={tl:$('tl'),pill:$('pill'),band:$('band'),bt1:$('bt1'),bt2:$('bt2'),hud:$('hud'),cards:$('cards'),skip:$('skip'),end:$('end'),sum:$('sum'),who:$('who'),cp:$('cp'),aL:$('aL'),bL:$('bL'),ft:$('ft'),rp:$('rp'),st:$('st'),sw:$('sw'),sb:$('sb')};
 E.ty=E.pill.querySelector('.ty');E.ca=E.pill.querySelector('.ca');E.ph=E.pill.querySelector('.ph');E.sd=E.pill.querySelector('.sd');E.hl=[...E.hud.children];E.li=[...document.querySelectorAll('.ln li')];
-let mode='pre',PUP=0,TY=[],PROMPT='',lastN=-1,hudKey='',C={},ready=false,fontsOK=false;
+let mode='pre',PUP=0,TY=[],PROMPT='',lastN=-1,hudKey='',C={},ready=false,fontsOK=false,fontsLoaded=false;
 const op=(el,v)=>{el.style.opacity=v<.002?'0':v>.998?'1':v.toFixed(3)};
 /* the prompt is typed at a readable pace, then held complete before it is sent */
 function sched(){PROMPT=S[lang].prompt;const r=mul(7),n=PROMPT.length,d=[],sp=[];for(let i=0;i<n;i++)if(PROMPT[i]===' ')sp.push(i);
@@ -67,9 +67,10 @@ for(let i=0;i<ts.length;i+=2)J(1e9,()=>rehearse(ts.slice(i,i+2)),1)}
 function rehearse(ts){if(!REH)return;const keep=X2;X2=REHX;try{for(const t of ts)render(t)}finally{X2=keep}X2.globalAlpha=1/255;X2.drawImage(REH,0,0,2,2);X2.globalAlpha=1}
 function runJobs(ms,film,hold){const t0=now();while(JOBS.length&&now()-t0<ms){const j=JOBS[0];if(j.reh&&film){JOBS.shift();continue}if(j.reh&&!hold)break;JOBS.shift();const a=now();j.fn();if(PERF)PF.jobs.push(+(now()-a).toFixed(2))}if(!JOBS.length)prepared=true}
 /* layout: measure the end frame, size the canvases, plan every act; nothing large is allocated after this */
-let SIG='',prepared=false;function layout(keep){const sig=[R.clientWidth,innerHeight,devicePixelRatio,lang]+'';if(keep&&ready&&prepared&&sig===SIG)return;SIG=sig;prepared=false;vw=R.clientWidth;vh=innerHeight;dpr=Math.min(2,devicePixelRatio||1);A=cl(vw/vh,.4,2.4);narrow=vw<640;
+let SIG='',prepared=false;const sigNow=()=>[R.clientWidth,innerHeight,devicePixelRatio,lang,fontsLoaded]+'';function layout(keep){const sig=sigNow();if(keep&&ready&&prepared&&sig===SIG)return;SIG=sig;prepared=false;vw=R.clientWidth;vh=innerHeight;dpr=Math.min(2,devicePixelRatio||1);A=cl(vw/vh,.4,2.4);narrow=vw<640;
 fitEnd();if(mode!=='end'){scrollTo(0,0);measurePill()}measureG();measureT();measureE();cw2=CV.width=Math.round(vw*dpr);ch2=CV.height=Math.round(vh*dpr);X2.imageSmoothingQuality='high';
 frames();layoutNight();planCut();buildWell();if(!REH||REH.width!==cw2||REH.height!==ch2){REH=cvs(cw2,ch2);REHX=REH.getContext('2d');REHX.imageSmoothingQuality='high'}BIG=null;ARTB=null;ready=true;queueJobs()}
+function refit(){layout();if(SIG!==sigNow())layout()}
 function initLang(){const s=S[lang];document.querySelectorAll('[data-k]').forEach(el=>{const v=s[el.dataset.k];if(typeof v==='string')el.textContent=v});E.bt1.textContent=LINE[0];E.bt2.innerHTML=s.take;buildCards();sched();hudKey='';TBM.clear();PC=new Map()}
 let t0=0,raf=0,pausedAt=null,skipT0=0,skipFrom=0,endT0=0,frozen=null,fc=0;
 const now=()=>performance.now(),clock=()=>(now()-t0)/1000;
@@ -86,7 +87,7 @@ else if(mode==='skip')skipFrame();else if(mode==='end')ambient()}catch(e){endOnE
 const MANAGED=()=>[E.tl,E.skip,E.pill,E.band,E.bt1,E.bt2,E.hud,...E.hl,E.who,E.rp,E.st,E.aL,E.bL,E.ft,...E.li];
 function liveEnd(){E.end.inert=false;E.end.removeAttribute('aria-hidden');E.sum.hidden=true}
 const endTT=()=>(now()-endT0)/1000;
-function setEnd(tt){mode='end';cancelAnimationFrame(raf);raf=0;MANAGED().forEach(el=>el.removeAttribute('style'));R.className='fin';E.sw.textContent='live';liveEnd();
+function setEnd(tt){mode='end';cancelAnimationFrame(raf);raf=0;MANAGED().forEach(el=>el.removeAttribute('style'));R.className='fin';E.sw.textContent='live';liveEnd();if(ready&&SIG!==sigNow())refit();
 const base=tt??(T.END-T.wo0);endT0=now()-base*1000;frozen=null;if(RM||(seekT!==null&&!endQ)){frozen=base;drawEnd(frozen);return}raf=requestAnimationFrame(loop)}
 function startTrailer(){R.className='run';mode='trailer';E.end.inert=true;E.end.setAttribute('aria-hidden','true');E.sum.hidden=false;PX=PY=PXT=PYT=0;frozen=null;AP0=AP0F;released=false;holdStart=0;MANAGED().forEach(el=>el.removeAttribute('style'));
 scrollTo(0,0);lastN=-1;if(fontsOK)layout(1);t0=now();cancelAnimationFrame(raf);raf=document.hidden?(pausedAt=0):requestAnimationFrame(loop)}
@@ -102,8 +103,9 @@ addEventListener('pointermove',e=>{if(mode==='end'&&e.pointerType!=='touch'){PXT
 function ambient(){if(document.hidden||(++fc&1))return;PX+=(PXT-PX)*.045;PY+=(PYT-PY)*.045;drawEnd(endTT())}
 ['pointerdown','keydown','wheel','touchmove'].forEach(ev=>addEventListener(ev,e=>{if(mode!=='trailer')return;if(ev==='keydown'&&(e.repeat||['Shift','Alt','Control','Meta'].includes(e.key)))return;guarded(startSkip)},{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(mode!=='trailer')return;if(document.hidden){pausedAt=clock();cancelAnimationFrame(raf);raf=0}else if(pausedAt!==null){t0=now()-pausedAt*1000;pausedAt=null;raf=requestAnimationFrame(loop)}});
-function relayout(){if(mode==='skip'||mode==='pre')return;const t=mode==='trailer'?clock():0;if(!fontsOK&&mode==='trailer')return;layout();if(mode==='seek')frame(seekT);else if(mode==='trailer')frame(t);else if(frozen!==null)drawEnd(frozen)}
-let rz=0,lastW=0,lastH=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth===lastW&&Math.abs(innerHeight-lastH)<120&&mode!=='seek')return;lastW=innerWidth;lastH=innerHeight;guarded(relayout)},140)});
+function relayout(){if(mode==='skip'||mode==='pre')return;const t=mode==='trailer'?clock():0;if(!fontsOK&&mode==='trailer')return;refit();if(mode==='seek')frame(seekT);else if(mode==='trailer')frame(t);else if(frozen!==null)drawEnd(frozen)}
+let rz=0,lastW=0,lastH=0;const toolbarSlide=()=>mode==='trailer'&&innerWidth===lastW&&Math.abs(innerHeight-lastH)<120&&matchMedia('(pointer:coarse)').matches;
+addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(toolbarSlide())return;lastW=innerWidth;lastH=innerHeight;guarded(relayout)},140)});
 E.rp.addEventListener('click',()=>guarded(startTrailer));
 E.skip.addEventListener('click',()=>guarded(startSkip));
 /* ---------- boot ---------- */
@@ -112,7 +114,9 @@ E.rp.hidden=false;plan();initLang();lastW=innerWidth;lastH=innerHeight;
 const early=(RM&&seekT===null)||endQ;if(early){R.className='fin';liveEnd();E.end.style.visibility='hidden'}
 /* fonts first: no text is drawn into a canvas before Epilogue and Fragment Mono are in (or 4 s have passed) */
 const FONTS=['300 100px Epilogue','400 16px Epilogue','500 16px Epilogue','600 16px Epilogue','400 12px "Fragment Mono"'];
-const fontsIn=Promise.race([Promise.all(FONTS.map(f=>document.fonts.load(f,'AaÄöü–’?'))).then(()=>document.fonts.ready),new Promise(r=>setTimeout(r,4000))]).catch(()=>{}).then(()=>{fontsOK=true});
+const fontsLoad=Promise.all(FONTS.map(f=>document.fonts.load(f,'AaÄöü–’?'))).then(()=>document.fonts.ready).then(()=>{fontsLoaded=true},()=>{});
+const fontsIn=Promise.race([fontsLoad,new Promise(r=>setTimeout(r,4000))]).then(()=>{fontsOK=true});
 if(early||seekT!==null)fontsIn.then(()=>guarded(()=>{layout();JOBS.length=0;if(early){E.end.style.visibility='';AP0=T.END-T.wo0+.3;setEnd();return}if(seekT>=T.END){setEnd(seekT-T.wo0)}else{mode='seek';E.end.inert=true;E.end.setAttribute('aria-hidden','true');frame(seekT)}}));
 else{startTrailer();fontsIn.then(()=>guarded(()=>{if(mode==='trailer'&&!ready)layout()}))}
+fontsLoad.then(()=>fontsIn).then(()=>guarded(()=>{if(ready&&SIG!==sigNow()){PC=new Map();relayout()}}));
 if(DEV)window.__m={get t(){return mode==="trailer"?((holdStart&&!released)||!ready?-1:clock()):null},get mode(){return mode},T,night,render:t=>{for(const j of JOBS.splice(0))if(!j.reh)j.fn();frame(t)},VS,PF,bmp};
