@@ -31,7 +31,7 @@ const BLS={};function blobSp(h,seed,hue){const key=h+'|'+seed+'|'+hue;if(BLS[key
 const B=(x,y,rad,H,sat,lt,a)=>{const q=g.createRadialGradient(x,y,0,x,y,rad);q.addColorStop(0,tint(H,sat,lt,a,hue));q.addColorStop(1,tint(H,sat,lt,0,hue));g.fillStyle=q;g.fillRect(0,0,200,200)};
 B(78+r()*10,100,78,266+h,92,70,.8);B(122-r()*10,104,76,222+h,95,64,.75);B(100,70+r()*10,52,312+h,88,80,.5);return BLS[key]=c}
 /* the night, painted into the page: lanes of agent work, review, merges into a main line, dawn. n: 1-2 a framed panel, 3 full-bleed */
-function nightArt(g,x,y,w,h,n,seed){if(h>w*1.6){g.save();g.translate(x,y+h);g.rotate(-Math.PI/2);nightArt(g,0,0,h,w,n,seed);g.restore();return}
+function nightArt(g,x,y,w,h,n,seed){if(!(Math.min(w,h)>=1))return;if(h>w*1.6){g.save();g.translate(x,y+h);g.rotate(-Math.PI/2);nightArt(g,0,0,h,w,n,seed);g.restore();return}
 g.save();if(n<3)rr(g,x,y,w,h,Math.min(w,h)*.025);else{g.beginPath();g.rect(x,y,w,h)}if(n<4){g.fillStyle='#0b0d15';g.fill()}g.clip();
 const r=mul(seed),k=Math.min(w,h),f=n<3,nl=f?2+n:5,top=y+h*(f?.16:.13),bot=y+h*(f?.66:.7),my=y+h*(f?.84:.86),lw=Math.max(.55,k*.0045),xs=x+w*.06;
 if(n>1){const q=g.createRadialGradient(x+w*.88,y+h*1.04,0,x+w*.88,y+h*1.04,Math.max(w,h)*.85);q.addColorStop(0,`rgba(150,92,54,${f?.3:.5})`);q.addColorStop(1,'rgba(30,24,30,0)');g.fillStyle=q;g.fillRect(x,y,w,h)}
