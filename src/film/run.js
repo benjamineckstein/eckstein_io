@@ -76,13 +76,13 @@ const now=()=>performance.now(),clock=()=>(now()-t0)/1000;
 function frame(t,hold){render(t);renderDOM(t,hold)}
 /* the film holds on the prompt (complete pill, blinking caret) until the fonts are in and the queue is done; then it types */
 const HOLD_T=T.ty0-.02;
-function loop(){raf=requestAnimationFrame(loop);
+function loop(){raf=requestAnimationFrame(loop);try{
 if(mode==='trailer'){if(!ready){t0=now();return}const fs=now();let t=clock(),hold=false;calm=fs-lastF<40?calm+1:0;lastF=fs;
 if(!released&&t>=HOLD_T){if(!holdStart){holdStart=fs;HOLD0=fs}const done=ready&&!JOBS.length&&calm>=3;if(done||fs-holdStart>7e3){released=true;if(PERF)PF.hold=+(fs-holdStart).toFixed(0)}else hold=true;t0=fs-HOLD_T*1000;t=HOLD_T}
 if(t>=T.END){setEnd();return}
 if(ready&&JOBS.length&&(hold||t>=T.pa+.44))runJobs(hold?36:7,released,hold);
 frame(t,hold)}
-else if(mode==='skip')skipFrame();else if(mode==='end')ambient()}
+else if(mode==='skip')skipFrame();else if(mode==='end')ambient()}catch(e){endOnError(e)}}
 const MANAGED=()=>[E.tl,E.skip,E.pill,E.band,E.bt1,E.bt2,E.hud,...E.hl,E.who,E.rp,E.st,E.aL,E.bL,E.ft,...E.li];
 function liveEnd(){E.end.inert=false;E.end.removeAttribute('aria-hidden');E.sum.hidden=true}
 const endTT=()=>(now()-endT0)/1000;
@@ -95,13 +95,16 @@ function startSkip(){if(mode!=='trailer')return;if(!ready)layout();const t=clock
 function skipDraw(q){drawEnd(T.END-T.wo0);const c=X2,a=1-sst(0,.9,q),sc=1+.14*eIn(q);if(a>0){c.globalAlpha=a;c.drawImage(REH,(cw2-cw2*sc)/2,(ch2-ch2*sc)/2,cw2*sc,ch2*sc);c.globalAlpha=1}
 renderDOM(skipFrom);R.classList.remove('dp');E.sw.textContent='live';op(E.tl,1-eSoft(P(q,0,.3)));op(E.skip,0);const f=eSoft(P(q,.45,1));[E.who,E.rp,E.st,E.aL,E.bL,E.ft,...E.li].forEach(el=>op(el,f))}
 function skipFrame(){const q=(now()-skipT0)/950;if(q>=1){setEnd();return}skipDraw(q)}
+function endOnError(e){console.error(e);E.end.style.visibility='';AP0=T.END-T.wo0+.5;if(mode!=='end'&&ready){try{setEnd();return}catch(f){console.error(f)}}
+mode='end';cancelAnimationFrame(raf);raf=0;MANAGED().forEach(el=>el.removeAttribute('style'));R.className='fin';liveEnd();X2.setTransform(1,0,0,1,0,0);X2.clearRect(0,0,CV.width,CV.height)}
+function guarded(fn){try{fn()}catch(e){endOnError(e)}}
 addEventListener('pointermove',e=>{if(mode==='end'&&e.pointerType!=='touch'){PXT=cl(e.clientX/vw*2-1,-1,1);PYT=cl(e.clientY/vh*2-1,-1,1)}},{passive:true});
 function ambient(){if(document.hidden||(++fc&1))return;PX+=(PXT-PX)*.045;PY+=(PYT-PY)*.045;drawEnd(endTT())}
-['pointerdown','keydown','wheel','touchmove'].forEach(ev=>addEventListener(ev,e=>{if(mode!=='trailer')return;if(ev==='keydown'&&['Shift','Alt','Control','Meta'].includes(e.key))return;startSkip()},{passive:true}));
+['pointerdown','keydown','wheel','touchmove'].forEach(ev=>addEventListener(ev,e=>{if(mode!=='trailer')return;if(ev==='keydown'&&['Shift','Alt','Control','Meta'].includes(e.key))return;guarded(startSkip)},{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(mode!=='trailer')return;if(document.hidden){pausedAt=clock();cancelAnimationFrame(raf);raf=0}else if(pausedAt!==null){t0=now()-pausedAt*1000;pausedAt=null;raf=requestAnimationFrame(loop)}});
 function relayout(){if(mode==='skip'||mode==='pre')return;const t=mode==='trailer'?clock():0;if(!fontsOK&&mode==='trailer')return;layout();if(mode==='seek')frame(seekT);else if(mode==='trailer')frame(t);else if(frozen!==null)drawEnd(frozen)}
-let rz=0,lastW=0,lastH=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth===lastW&&Math.abs(innerHeight-lastH)<120&&mode!=='seek')return;lastW=innerWidth;lastH=innerHeight;relayout()},140)});
-E.rp.addEventListener('click',()=>startTrailer());
+let rz=0,lastW=0,lastH=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth===lastW&&Math.abs(innerHeight-lastH)<120&&mode!=='seek')return;lastW=innerWidth;lastH=innerHeight;guarded(relayout)},140)});
+E.rp.addEventListener('click',()=>guarded(startTrailer));
 /* ---------- boot ---------- */
 {const spelled=[...PAGE[lang].sub.matchAll(/\[\[(.+?)\]\]/g)].map(m=>m[1]).reduce((a,w)=>a+(a&&!/^[.,!?]$/.test(w)?' ':'')+w,''),line=LINE.join(' ');if(spelled!==line)console.error(`Merge (${lang}): the survivors spell "${spelled}", the line is "${line}"`)}
 E.rp.hidden=false;plan();initLang();lastW=innerWidth;lastH=innerHeight;
@@ -109,6 +112,6 @@ const early=(RM&&seekT===null)||endQ;if(early){R.className='fin';liveEnd();E.end
 /* fonts first: no text is drawn into a canvas before Epilogue and Fragment Mono are in (or 4 s have passed) */
 const FONTS=['300 100px Epilogue','400 16px Epilogue','500 16px Epilogue','600 16px Epilogue','400 12px "Fragment Mono"'];
 const fontsIn=Promise.race([Promise.all(FONTS.map(f=>document.fonts.load(f,'AaÄöü–’?'))).then(()=>document.fonts.ready),new Promise(r=>setTimeout(r,4000))]).catch(()=>{}).then(()=>{fontsOK=true});
-if(early||seekT!==null)fontsIn.then(()=>{layout();JOBS.length=0;if(early){E.end.style.visibility='';AP0=T.END-T.wo0+.3;setEnd();return}if(seekT>=T.END){setEnd(seekT-T.wo0)}else{mode='seek';E.end.inert=true;E.end.setAttribute('aria-hidden','true');frame(seekT)}});
-else{startTrailer();fontsIn.then(()=>{if(mode==='trailer'&&!ready)layout()})}
+if(early||seekT!==null)fontsIn.then(()=>guarded(()=>{layout();JOBS.length=0;if(early){E.end.style.visibility='';AP0=T.END-T.wo0+.3;setEnd();return}if(seekT>=T.END){setEnd(seekT-T.wo0)}else{mode='seek';E.end.inert=true;E.end.setAttribute('aria-hidden','true');frame(seekT)}}));
+else{startTrailer();fontsIn.then(()=>guarded(()=>{if(mode==='trailer'&&!ready)layout()}))}
 if(DEV)window.__m={get t(){return mode==="trailer"?((holdStart&&!released)||!ready?-1:clock()):null},get mode(){return mode},T,night,render:t=>{for(const j of JOBS.splice(0))if(!j.reh)j.fn();frame(t)},VS,PF,bmp};
