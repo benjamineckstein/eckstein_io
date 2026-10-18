@@ -137,15 +137,12 @@ rr(g,81*u,3.6*u,7*u,3.1*u,.8*u);g.lineWidth=.35*u;g.strokeStyle=g.fillStyle;g.st
 rr(g,6*u,9.6*u,88*u,7.6*u,3.8*u);g.fillStyle=dk?'#24252d':'rgba(20,20,40,.07)';g.fill();g.font=`500 ${3*u}px ${SYS}`;g.fillStyle=dk?'#9a9aa6':'#777784';g.textAlign='center';if(!st.anon)g.fillText(PAGE[lang].url,50*u,13.5*u)}
 g.textAlign='left';g.restore()}
 const chromeH=(W,st)=>st.nc?0:narrow?W*.186:W*.044;
-/* the end frame's well, drawn small: the art of v47, so the miniature at the bottom of the well shows the end screen itself */
-function miniWell(g){const vp=VPW;g.save();g.lineWidth=1;for(let i=NW;i>=1;i-=2){const f=fAt(i,0),x=vp[0]*(1-f),y=vp[1]*(1-f),w=vw*f,h=vh*f,b=Math.exp(-(((f-.5)/.24)**2)),a=i>=NW-1?.5:.05+.16*b;
-g.strokeStyle=`rgba(${i>34?'214,206,236':'196,206,246'},${a.toFixed(3)})`;g.strokeRect(x+.5,y+.5,w-1,h-1)}
-const f=fAt(NW,0),x=vp[0]*(1-f),y=vp[1]*(1-f),w=vw*f,h=vh*f,q=g.createRadialGradient(x+w/2,y+h/2,0,x+w/2,y+h/2,Math.max(w,h)*.9);q.addColorStop(0,'rgba(255,214,160,.16)');q.addColorStop(1,'rgba(255,214,160,0)');
-g.fillStyle=q;g.fillRect(x-w,y-h,w*3,h*3);g.fillStyle='rgba(242,241,236,.08)';g.fillRect(x+w*.08,y+h*.1,w*.84,h*.8);g.restore()}
+/* the end frame's stack, drawn small: the art of v47, so the nearest page of the stack shows the end screen itself */
+function miniWell(g){const F=fan();if(!F)return;const K=STK.length;g.save();F.forEach((r,k)=>{rr(g,r.x,r.y,r.w,r.h,tr(r.w,r.h));g.globalAlpha=L(.25,.6,k/(K-1));g.fillStyle=VS[STK[k]].bg;g.fill()});g.restore()}
 /* the art: on the light pages a framed picture of the night, on the dark pages its light alone; from ap on it sits exactly where the well will open */
-function artG(g,st){if(st.fin){miniWell(g);return}const P=st.ap?EM.panel:EM.zone;nightArt(g,P.x,P.y,P.w,P.h,st.ga===1?2:4,9);
-if(st.ga===2){g.save();g.strokeStyle='rgba(242,241,236,.13)';g.lineWidth=1;g.strokeRect(P.x+.5,P.y+.5,P.w-1,P.h-1);
-if(st.rg)for(let j=1;j<=3;j++){const f=EM.panel.f*(1+.12*j),x=VPW[0]*(1-f),y=VPW[1]*(1-f);g.strokeStyle=`rgba(214,206,236,${(.11-.025*j).toFixed(3)})`;g.strokeRect(x+.5,y+.5,vw*f-1,vh*f-1)}g.restore()}}
+function artG(g,st){if(st.fin){miniWell(g);return}const P=st.ap?EM.panel:EM.zone,F=st.rg&&fan();
+if(F){g.save();g.fillStyle='rgba(242,241,236,.05)';for(let k=0;k<STK.length-1;k++){const r=F[k];rr(g,r.x,r.y,r.w,r.h,tr(r.w,r.h));g.fill()}g.restore()}
+nightArt(g,P.x,P.y,P.w,P.h,st.ga===1?2:4,9);if(st.ga===2){g.save();g.strokeStyle='rgba(242,241,236,.13)';g.lineWidth=1;g.strokeRect(P.x+.5,P.y+.5,P.w-1,P.h-1);g.restore()}}
 function layG(W,H,st){const s=PAGE[lang],e=EM,O=[],mob=narrow,fin=st.fin,ch=chromeH(W,st),k=W/vw,kc=(H-ch)/H;
 const o={W,H,mob,ops:O,nl:0,kf:k*kc,ox:W*(1-kc)/2,oy:ch,bg:st.bg,st,g:1,ch,chrome:ch?(g=>chromeG(g,W,ch,st)):null};
 const IK=st.ik,MU=st.mu,DIM=st.dim,AC=st.ac,HAIR=st.dk?'rgba(242,241,236,.2)':'rgba(20,20,24,.22)';

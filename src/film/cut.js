@@ -48,7 +48,7 @@ GRP.forEach((g,i)=>{const e=Math.max(...g.st.map(S=>S.t0+S.d)),sz=g.rows[0].sz;g
 const fallEnd=Math.max(...GRP.map(g=>g.f0+g.fd));
 /* the survivors light up in reading order, then gather into the end frame's headline */
 let t=T.litA=T.redB+.12;SURV.forEach((q,i)=>{q.lit=t;const nx=SURV[i+1];if(nx)t+=/^[.!?]$/.test(q.q.s)?.2:.07+.007*q.q.s.length});
-T.cl0=Math.max(t+.3,fallEnd-.1);planGather();T.fl0=T.cl0+.75;T.wo0=T.fl0+.1;T.wo1=T.wo0+1.7;T.dp0=T.fl0+1.0;T.dp1=T.dp0+1.05;T.ho=Math.max(T.fl0+.22+FLD,T.dp1)+.05;T.END=T.ho+1.3}
+T.cl0=Math.max(t+.3,fallEnd-.1);planGather();T.fl0=T.cl0+.75;T.wo0=T.fl0+.1;T.dp0=T.fl0+1.0;T.dp1=T.dp0+1.05;T.ho=Math.max(T.fl0+.22+FLD,T.dp1)+.05;T.END=T.ho+1.3}
 /* the two lines of the end frame, scaled down to the copy's size and set where the copy was: the survivors close ranks there first */
 function planGather(){const nA=E.aL.querySelectorAll('.t').length,ss=SURV.length?SURV[0].q.sz:16,y1=Math.min(...SURV.map(q=>q.q.y)),slh=EM.hero.slh;
 [[0,nA],[nA,SURV.length]].forEach(([i0,i1],ri)=>{const a=TGT[i0];if(!a)return;const R={k:ss/a.sz,ax:a.x,ay:a.yb,bx:EM.px,by:y1+ri*slh,d:ri*.22};
@@ -61,7 +61,8 @@ return{wt,col:rgb(mixC([163,165,177],[255,240,222],a)),ls:(w0-w1)/n}}
 function unfold(t){const e=eOut(P(t,T.pg0,T.pg1)),p=pvRect(NM),w=vw*Math.pow(p.w/vw,1-e),h=w/A,x=L(p.x,0,e),y=L(p.y,0,e),chF=chromeH(w,VS[46]),ch=chF*(1-e),kc=(h-ch)/h;
 return{e,x,y,w,h,chF,ch,s:w/vw*kc,ox:x+w*(1-kc)/2,oy:y+ch,rad:tr(w,h)*(1-e)}}
 /* the art of v46, rendered once: the night's light where the well will open */
-function artRect(){const P=EM.panel,f=P.f*1.36,x=Math.floor((Math.min(P.x,VPW[0]*(1-f))-4)*dpr),y=Math.floor((Math.min(P.y,VPW[1]*(1-f))-4)*dpr);return{x:x/dpr,y:y/dpr,w:Math.ceil((Math.max(P.w,vw*f)+8)*dpr)/dpr,h:Math.ceil((Math.max(P.h,vh*f)+8)*dpr)/dpr}}
+function artRect(){const rs=[EM.panel,...(fan()||[])],x=Math.floor((Math.min(...rs.map(r=>r.x))-4)*dpr),y=Math.floor((Math.min(...rs.map(r=>r.y))-4)*dpr),
+x1=Math.ceil((Math.max(...rs.map(r=>r.x+r.w))+4)*dpr),y1=Math.ceil((Math.max(...rs.map(r=>r.y+r.h))+4)*dpr);return{x:x/dpr,y:y/dpr,w:(x1-x)/dpr,h:(y1-y)/dpr}}
 function buildArt(){if(ARTB)return ARTB;const R=ARTR=artRect(),c=ARTB=cvs(R.w*dpr,R.h*dpr),g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,-R.x*dpr,-R.y*dpr);artG(g,VS[46]);return c}
 let BIG=null;const bigBmp=()=>BIG||(BIG=bmp(Object.assign({},VS[46],{nc:1}),cw2,ch2));
 function drawPageOps(c,t,full){const o=LYC;c.textBaseline='middle';c.textAlign='left';
@@ -73,7 +74,7 @@ if(HASLS)c.letterSpacing='0px'}
 /* the full-size page while the cut runs: ground, art (fading as the well opens), the well, what stays, what falls, then the survivors on top */
 function drawCut(t){const c=X2;c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.fillStyle=LYC.bg;c.fillRect(0,0,cw2,ch2);
 const ao=1-eSoft(P(t,T.wo0+.2,T.wo0+1.2));if(ao>0){const ab=buildArt();c.globalAlpha=ao;c.drawImage(ab,ARTR.x*dpr,ARTR.y*dpr,ARTR.w*dpr,ARTR.h*dpr);c.globalAlpha=1}
-if(t>=T.wo0)well(t-T.wo0,eSoft(P(t,T.wo0,T.wo0+.9)),eIO(P(t,T.wo0,T.wo1)));
+if(t>=T.wo0)well(t-T.wo0,eSoft(P(t,T.wo0,T.wo0+.9)));
 c.setTransform(dpr,0,0,dpr,0,0);drawPageOps(c,t,true);drawSurv(c,t)}
 /* the page growing out of the preview: one pre-rendered full-size bitmap, scaled, under its sliding browser bar */
 function drawUnfold(t){const c=X2,u=unfold(t);c.setTransform(1,0,0,1,0,0);c.save();rr(c,u.x*dpr,u.y*dpr,u.w*dpr,u.h*dpr,u.rad*dpr);c.clip();c.fillStyle=LYC.bg;c.fillRect(u.x*dpr,u.y*dpr,u.w*dpr,u.h*dpr);

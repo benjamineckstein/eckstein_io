@@ -60,7 +60,7 @@ for(let b=0;b<N*N;b+=25)J(STG[0][0],()=>{for(let k=b;k<Math.min(N*N,b+25);k++)if
 [5,6,7,8].forEach(k=>J(T.fw0,()=>pageBmp(k,FRONT.w*dpr,FRONT.h*dpr)));
 night.pv.forEach(e=>J(T.N0,()=>pageBmp(e.k,PV.w*dpr,PV.h*dpr,e.s)));
 J(T.pg0,bigBmp);J(T.pg1,buildArt);
-MREP.forEach(v=>J(T.wo0,()=>miniBmp(v)));
+STK.forEach((v,k)=>J(T.pg0,()=>stackBmp(k)));
 JOBS.sort((a,b)=>a.due-b.due);
 const ts=[];for(let t=5.4;t<37.5;t+=1.25)ts.push(t);ts.push(T.pg1+.2,T.redA+.4,(T.redA+T.redB)/2,T.redB+.1,T.litA+.4,T.fl0+.3,T.fl0+.8,T.dp0+.3,T.ho-.1,T.ho+.3,T.END+.5);
 for(let i=0;i<ts.length;i+=2)J(1e9,()=>rehearse(ts.slice(i,i+2)),1)}
@@ -87,11 +87,11 @@ const MANAGED=()=>[E.tl,E.skip,E.pill,E.band,E.bt1,E.bt2,E.hud,...E.hl,E.who,E.r
 function liveEnd(){E.end.inert=false;E.end.removeAttribute('aria-hidden');E.sum.hidden=true}
 const endTT=()=>(now()-endT0)/1000;
 function setEnd(tt){mode='end';cancelAnimationFrame(raf);raf=0;MANAGED().forEach(el=>el.removeAttribute('style'));R.className='fin';E.sw.textContent='live';liveEnd();
-const base=tt??(T.END-T.wo0);endT0=now()-base*1000;frozen=null;if(RM||(seekT!==null&&!endQ)){frozen=RM&&tt==null?AG0+TRV+2:base;drawEnd(frozen);return}raf=requestAnimationFrame(loop)}
-function startTrailer(){R.className='run';mode='trailer';E.end.inert=true;E.end.setAttribute('aria-hidden','true');E.sum.hidden=false;PX=PY=PXT=PYT=0;frozen=null;MRS=1.3;MRF=false;released=false;holdStart=0;MANAGED().forEach(el=>el.removeAttribute('style'));
+const base=tt??(T.END-T.wo0);endT0=now()-base*1000;frozen=null;if(RM||(seekT!==null&&!endQ)){frozen=base;drawEnd(frozen);return}raf=requestAnimationFrame(loop)}
+function startTrailer(){R.className='run';mode='trailer';E.end.inert=true;E.end.setAttribute('aria-hidden','true');E.sum.hidden=false;PX=PY=PXT=PYT=0;frozen=null;AP0=AP0F;released=false;holdStart=0;MANAGED().forEach(el=>el.removeAttribute('style'));
 scrollTo(0,0);lastN=-1;if(fontsOK)layout(1);t0=now();cancelAnimationFrame(raf);raf=document.hidden?(pausedAt=0):requestAnimationFrame(loop)}
 function snap(){REHX.setTransform(1,0,0,1,0,0);REHX.globalAlpha=1;REHX.globalCompositeOperation='copy';REHX.drawImage(CV,0,0);REHX.globalCompositeOperation='source-over'}
-function startSkip(){if(mode!=='trailer')return;if(!ready)layout();const t=clock();if(t>=T.ho){MRS=1.3;setEnd(t-T.wo0);return}mode='skip';skipFrom=t;skipT0=now();snap();liveEnd();R.classList.remove('dp');E.sw.textContent='live';MRS=T.END-T.wo0+.5}
+function startSkip(){if(mode!=='trailer')return;if(!ready)layout();const t=clock();if(t>=T.ho){AP0=AP0F;setEnd(t-T.wo0);return}mode='skip';skipFrom=t;skipT0=now();snap();liveEnd();R.classList.remove('dp');E.sw.textContent='live';AP0=T.END-T.wo0+.5}
 function skipDraw(q){drawEnd(T.END-T.wo0);const c=X2,a=1-sst(0,.9,q),sc=1+.14*eIn(q);if(a>0){c.globalAlpha=a;c.drawImage(REH,(cw2-cw2*sc)/2,(ch2-ch2*sc)/2,cw2*sc,ch2*sc);c.globalAlpha=1}
 renderDOM(skipFrom);R.classList.remove('dp');E.sw.textContent='live';op(E.tl,1-eSoft(P(q,0,.3)));op(E.skip,0);const f=eSoft(P(q,.45,1));[E.who,E.rp,E.st,E.aL,E.bL,E.ft,...E.li].forEach(el=>op(el,f))}
 function skipFrame(){const q=(now()-skipT0)/950;if(q>=1){setEnd();return}skipDraw(q)}
@@ -109,6 +109,6 @@ const early=(RM&&seekT===null)||endQ;if(early){R.className='fin';liveEnd();E.end
 /* fonts first: no text is drawn into a canvas before Epilogue and Fragment Mono are in (or 4 s have passed) */
 const FONTS=['300 100px Epilogue','400 16px Epilogue','500 16px Epilogue','600 16px Epilogue','400 12px "Fragment Mono"'];
 const fontsIn=Promise.race([Promise.all(FONTS.map(f=>document.fonts.load(f,'AaÄöü–’?'))).then(()=>document.fonts.ready),new Promise(r=>setTimeout(r,4000))]).catch(()=>{}).then(()=>{fontsOK=true});
-if(early||seekT!==null)fontsIn.then(()=>{layout();JOBS.length=0;if(early){E.end.style.visibility='';MRS=T.END-T.wo0+.3;setEnd();return}if(seekT>=T.END){setEnd(seekT-T.wo0)}else{mode='seek';E.end.inert=true;E.end.setAttribute('aria-hidden','true');frame(seekT)}});
+if(early||seekT!==null)fontsIn.then(()=>{layout();JOBS.length=0;if(early){E.end.style.visibility='';AP0=T.END-T.wo0+.3;setEnd();return}if(seekT>=T.END){setEnd(seekT-T.wo0)}else{mode='seek';E.end.inert=true;E.end.setAttribute('aria-hidden','true');frame(seekT)}});
 else{startTrailer();fontsIn.then(()=>{if(mode==='trailer'&&!ready)layout()})}
 if(DEV)window.__m={get t(){return mode==="trailer"?(holdStart&&!released?-1:clock()):null},get mode(){return mode},T,night,render:t=>{for(const j of JOBS.splice(0))if(!j.reh)j.fn();frame(t)},VS,PF,bmp};

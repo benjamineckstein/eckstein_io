@@ -1,43 +1,29 @@
-/* ---------- V: v47 deployed in front, every earlier version receding behind it; at the bottom the small screen replays the evolution once and lands on our page ---------- */
-const NW=46,PER=7.5,TRV=2.9,AG0=1.1,MRD=.5;
-let WL=null,WX=null,WB1=null,WB2=null,WG=.069,VPW=[0,0],PX=0,PY=0,PXT=0,PYT=0,IP=30,MRS=1.3,MRF=false,MINI=new Map(),MSZ=[1,1];
-const fAt=(i,tt)=>1/(1+i*WG*(1+.035*Math.sin(tt*.42)));
-/* the evolution as the film showed it: v1, the small tweaks, the stack, every merge of the night, then ours */
-const MREP=[1,2,3,4,5,6,7,8,...night.pv.slice(1).map(e=>e.v),47];
-function buildWell(){WL=cvs(cw2,ch2);WX=WL.getContext('2d');WB1=cvs(Math.ceil(cw2/5),Math.ceil(ch2/5));WB2=cvs(Math.ceil(cw2/18),Math.ceil(ch2/18));const f=fAt(NW,0);MSZ=[Math.round(vw*f*dpr),Math.round(vh*f*dpr)];MINI=new Map()}
-function miniBmp(v){let c=MINI.get(v);if(!c){c=bmp(VS[v],MSZ[0],MSZ[1]);MINI.set(v,c)}return c}
-function wvp(tt){return[VPW[0]+Math.sin(tt*.23)*vw*.008+PX*vw*.028,VPW[1]+Math.sin(tt*.19)*vh*.008+PY*vh*.022]}
-const frameAt=(i,tt,vp)=>{const f=fAt(i,tt);return{x:vp[0]*(1-f),y:vp[1]*(1-f),w:vw*f,h:vh*f,f}};
-/* now and then one agent travels down the well, along its ceiling, from the newest versions to v1 */
-function agentAt(tt){if(tt<AG0||RM)return null;const n=Math.floor((tt-AG0)/PER),u=(tt-AG0-n*PER)/TRV;return u>=1?null:{u,env:Math.sin(Math.PI*cl(u*1.15))}}
-const agD0=()=>narrow?14:6,agDepth=u=>L(agD0(),NW,eIO(u)),agPt=(di,tt,vp)=>{const r=frameAt(di,tt,vp),s=L(.2,.58,(di-agD0())/(NW-agD0()));return[r.x+r.w*s,r.y,r.f]};
-/* the small screen: which version it shows at well time tt, and how far the crossfade from the one before has come */
-function miniAt(tt){if(MRF||RM)return{i:MREP.length-1,p:1};const x=(tt-MRS)/MRD;if(x<0)return{i:0,p:1};const i=Math.min(MREP.length-1,Math.floor(x)),v=MREP[i],pv=MREP[i-1];
-const fd=i&&(!!VS[v].dk)!==(!!VS[pv].dk)?.45:.25;return{i,p:i?cl((tt-MRS-i*MRD)/fd):1}}
-function wellGlow(cx,cy,r0,r1,b,yf,ga){const c=WX;c.globalCompositeOperation='destination-in';const g=c.createRadialGradient(cx,cy,r0,cx,cy,r1);g.addColorStop(0,'#000');g.addColorStop(.4,'rgba(0,0,0,.72)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,cw2,ch2);
-if(yf){const l=c.createLinearGradient(0,yf[0],0,yf[1]);l.addColorStop(0,'#000');l.addColorStop(1,'rgba(0,0,0,.1)');c.fillStyle=l;c.fillRect(0,0,cw2,ch2)}c.globalCompositeOperation='source-over';
-X2.globalAlpha=ga;X2.drawImage(WL,0,0);X2.globalAlpha=1;const b1=WB1.getContext('2d'),b2=WB2.getContext('2d');b1.clearRect(0,0,WB1.width,WB1.height);b1.drawImage(WL,0,0,WB1.width,WB1.height);b2.clearRect(0,0,WB2.width,WB2.height);b2.drawImage(WB1,0,0,WB2.width,WB2.height);
-/* both glow levels summed at the first level's size, one full-size draw */
-b1.globalCompositeOperation='copy';b1.globalAlpha=.55/.9;b1.drawImage(WB1,0,0);b1.globalAlpha=1;b1.globalCompositeOperation='lighter';b1.drawImage(WB2,0,0,WB1.width,WB1.height);b1.globalCompositeOperation='source-over';
-X2.globalCompositeOperation='lighter';X2.globalAlpha=.9*b*ga;X2.imageSmoothingQuality='low';X2.drawImage(WB1,0,0,cw2,ch2);X2.imageSmoothingQuality='high';X2.globalAlpha=1;X2.globalCompositeOperation='source-over'}
-/* open: 0..1, the well opens from where the art of the page was (frame IP) both deeper and outward */
-function well(tt,ga,open){if(!WX)return;ga=ga??1;open=open??1;const c=WX,vp=wvp(tt),ag=agentAt(tt),di=ag?agDepth(ag.u):-99,ae=ag?ag.env:0,vis=i=>cl((open*1.35-Math.abs(i-IP)/NW)*4);
-c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.clearRect(0,0,cw2,ch2);
-const r1=frameAt(NW,tt,vp),v0=vis(NW),br=1+.14*Math.sin(tt*1.05),pb0=ae*Math.exp(-((NW-di)**2)/8),cx=(r1.x+r1.w/2)*dpr,cy=(r1.y+r1.h/2)*dpr,m=miniAt(tt),mv=MREP[m.i],warm=v=>VS[v].dk?1:0,wm=L(m.i?warm(MREP[m.i-1]):warm(mv),warm(mv),m.p);
-if(v0>0){X2.globalAlpha=ga;const g=X2.createRadialGradient(cx,cy,0,cx,cy,Math.max(r1.w,r1.h)*dpr*1.7),hue=L(258,34,wm);g.addColorStop(0,`hsla(${hue.toFixed(0)},${L(80,90,wm).toFixed(0)}%,${L(60,62,wm).toFixed(0)}%,${(.16*v0*br*(1+.8*pb0)).toFixed(3)})`);g.addColorStop(1,`hsla(${hue.toFixed(0)},80%,55%,0)`);
-X2.fillStyle=g;X2.fillRect(0,0,cw2,ch2);const al=ga*v0*Math.min(1,.82*br+.3*pb0),X=r1.x*dpr,Y=r1.y*dpr,W=r1.w*dpr,H=r1.h*dpr;
-if(m.p<1&&m.i){X2.globalAlpha=al;X2.drawImage(miniBmp(MREP[m.i-1]),X,Y,W,H)}X2.globalAlpha=al*(m.i?m.p:1);X2.drawImage(miniBmp(mv),X,Y,W,H);X2.globalAlpha=1}
-c.lineWidth=dpr;
-for(let i=NW-1;i>=1;i--){const v=vis(i);if(v<=0)continue;const r=frameAt(i,tt,vp),k=47-i,night=k>=9,pb=ae*Math.exp(-((i-di)**2)/5),bell=Math.exp(-(((r.f-.5)/.24)**2)),
-base=cl((k===8?.36+.3*bell:.045+.13*bell)*v),ea=cl(base+pb*.7),wt=cl(pb*.7/(ea+1e-3)),d=i/NW,col=night?[L(236,214,d),L(222,206,d),L(200,236,d)]:[196,206,246];
-c.fillStyle=night?`rgba(5,6,10,${(.03*v).toFixed(4)})`:`rgba(214,216,248,${(.014*v).toFixed(4)})`;c.fillRect(r.x*dpr,r.y*dpr,r.w*dpr,r.h*dpr);
-c.strokeStyle=`rgba(${Math.round(L(col[0],255,wt))},${Math.round(L(col[1],206,wt))},${Math.round(L(col[2],150,wt))},${ea.toFixed(3)})`;c.strokeRect(r.x*dpr+dpr/2,r.y*dpr+dpr/2,r.w*dpr-dpr,r.h*dpr-dpr)}
-if(ag){c.setTransform(dpr,0,0,dpr,0,0);c.globalCompositeOperation='lighter';c.lineCap='round';const u0=Math.max(0,ag.u-.2),pts=[];for(let j=0;j<=26;j++){const u=L(u0,ag.u,j/26),p=agPt(agDepth(u),tt,vp);pts.push(p)}
-const hd=pts[pts.length-1],tl=pts[0],gr=c.createLinearGradient(tl[0],tl[1],hd[0],hd[1]);gr.addColorStop(0,'rgba(255,228,180,0)');gr.addColorStop(1,`rgba(255,228,180,${(.9*ae).toFixed(3)})`);c.beginPath();
-pts.forEach((p,j)=>{const z=j&1?1:-1,a=(1.5+3.5*hsh(j+Math.floor(ag.u*40),7))*p[2]*(j>23?0:1);j?c.lineTo(p[0],p[1]+z*a):c.moveTo(p[0],p[1])});c.lineWidth=1.3;c.strokeStyle=gr;c.stroke();
-glow(c,SP.impl,hd[0],hd[1],34*Math.max(.45,hd[2]),.95*ae);glow(c,SP.white,hd[0],hd[1],9*Math.max(.5,hd[2]),ae);c.globalCompositeOperation='source-over';c.setTransform(1,0,0,1,0,0)}
-const D=Math.hypot(vw,vh)*dpr;wellGlow(cx,cy,Math.max(r1.w,r1.h)*dpr*.5,D*(narrow?.62:.55),ga,[(r1.y+r1.h)*dpr,(r1.y+r1.h+vh*.24)*dpr],ga);
-if(v0>0){X2.font=`400 ${10*dpr}px ${MONO}`;X2.textBaseline='alphabetic';X2.textAlign='left';X2.fillStyle=`rgba(214,220,255,${cl((.42+.5*pb0)*v0*ga).toFixed(3)})`;X2.fillText('v'+mv,(r1.x+1)*dpr,(r1.y-5)*dpr)}}
+/* ---------- V: v47 deployed in front; behind it, far to near, the versions that led here, v1 small and faded at the far end. They build up oldest first ---------- */
+const NW=46,STK=[1,6,12,24,31,47],SST=.8,APD=.5,AP0F=.4,STK_MIN_H=56,
+FAN_W={fx:.55,fy:.2},FAN_N={fx:.7,fy:.3},FOG=[.72,.67,.62,.57,0,0],LIFT=[0,0,0,0,.03,.045],RES=[.5,.6,.7,.8,.9,1];
+let WG=.069,VPW=[0,0],PX=0,PY=0,PXT=0,PYT=0,AP0=AP0F,FAN,SBM=[];
+const fAt=i=>1/(1+i*WG);
+function buildWell(){FAN=undefined;SBM=[]}
+function fanLayout(){const e=EM,K=STK.length,a=vw/vh,g=1/SST-1,sm=SST**(K-1),{fx,fy}=narrow?FAN_N:FAN_W,vx=a*(1+fx/g),vy=-fy/g,bw=a*(1+fx/g*(1-sm)),bh=1-vy*(1-sm),
+x0=e.zone.x,x1=e.pr,y1=Math.min(e.zone.y+e.zone.h,e.rp.y>e.zone.y?e.rp.y-12:1e9),y0=narrow?e.who.b1-e.who.s1:e.zone.y,nr=e.who.x+Math.max(mw(NAME,e.who.w1,e.who.s1,SANS,e.who.l1),mw(ROLE,e.who.w2,e.who.s2,SANS,e.who.l2)),
+keep=[[e.who.x-8,y0-8,nr+16,e.who.bot+10],[e.rp.x-12,e.rp.y-12,e.rp.x+e.rp.w+12,e.rp.y+e.rp.h+12]],
+at=(k,u)=>{const s=SST**(K-1-k);return{x:x0+vx*(1-s)*u,y:y1-(1-vy*(1-s))*u,w:a*s*u,h:s*u}},
+hits=u=>STK.some((_,k)=>{const r=at(k,u);return keep.some(o=>r.x<o[2]&&r.x+r.w>o[0]&&r.y<o[3]&&r.y+r.h>o[1])});
+let u=Math.min((x1-x0)/bw,(y1-y0)/bh);for(let i=0;i<40&&u>=STK_MIN_H&&hits(u);i++)u*=.96;return u>=STK_MIN_H&&!hits(u)?STK.map((_,k)=>at(k,u)):null}
+const fan=()=>FAN===undefined?(FAN=fanLayout()):FAN;
+const stackRect=k=>{const F=fan();return F?F[k]:null};
+function stackBmp(k){if(SBM[k])return SBM[k];const r=stackRect(k);if(!r)return null;const K=STK.length,q=RES[k]*dpr,W=Math.max(2,Math.round(r.w*q)),H=Math.max(2,Math.round(r.h*q)),M=Math.ceil(40*q),
+c=cvs(W+2*M,H+2*M),g=c.getContext('2d'),near=k===K-1,off=c.width+2*M;
+if(k){g.save();g.shadowColor=near?'rgba(255,214,160,.5)':'rgba(0,0,0,.55)';g.shadowBlur=(near?24:16)*q;g.shadowOffsetX=off;g.shadowOffsetY=(near?0:5)*q;g.fillStyle='#000';rr(g,M-off,M,W,H,tr(W,H));g.fill();g.restore()}
+g.drawImage(bmp(VS[STK[k]],W,H),M,M);if(FOG[k]||LIFT[k]){g.save();rr(g,M,M,W,H,tr(W,H));g.clip();g.fillStyle=FOG[k]?`rgba(8,9,13,${FOG[k]})`:`rgba(242,241,236,${LIFT[k]})`;g.fillRect(M,M,W,H);g.restore()}
+c.M=M;c.z=dpr/q;return SBM[k]=c}
+const appear=(k,tt)=>RM?1:eSoft(P(tt,AP0+k*APD,AP0+k*APD+.6));
+function well(tt,ga){const F=fan();if(!F)return;ga=ga??1;const c=X2,K=STK.length,n=F[K-1],an=appear(K-1,tt)*ga,drift=k=>{const s=SST**(K-1-k);return[PX*vw*.012*s,PY*vh*.01*s]};
+c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';
+if(an>0){const[dx,dy]=drift(K-1),cx=(n.x+n.w/2+dx)*dpr,cy=(n.y+n.h/2+dy)*dpr,rad=Math.max(n.w,n.h)*1.25*dpr,q=c.createRadialGradient(cx,cy,0,cx,cy,rad);
+q.addColorStop(0,`rgba(255,206,150,${(.14*an).toFixed(3)})`);q.addColorStop(1,'rgba(255,206,150,0)');c.fillStyle=q;c.fillRect(cx-rad,cy-rad,rad*2,rad*2)}
+for(let k=0;k<K;k++){const a=appear(k,tt)*ga;if(a<=0)continue;const r=F[k],b=stackBmp(k),[dx,dy]=drift(k),m=b.M*b.z;c.globalAlpha=a;c.drawImage(b,(r.x+dx)*dpr-m,(r.y+dy)*dpr-m,b.width*b.z,b.height*b.z)}
+c.globalAlpha=1}
 /* the end frame: the line is the survivors of the cut, set large */
 function split2(s){const w=s.split(' '),k=cl(LBRK[lang],1,w.length-1);return w.length<2?[s]:[w.slice(0,k).join(' '),w.slice(k).join(' ')]}
 const tokHTML=s=>s.split(' ').map((w,i)=>{const m=w.match(/^(.*?)([.?!,…]*)$/);return(i?' ':'')+`<span class="t">${m[1]}</span>`+(m[2]?`<span class="t">${m[2]}</span>`:'')}).join('');
@@ -70,8 +56,8 @@ if(step>=t2*1.15){const top=fz0+(zh-(2*step+ih))/2;e.feat={x:px,y:top+t2*.75,ste
 else{let w=0;s.cards.forEach(c=>w+=mw(c[0],400,rs,SANS)+rs*3.6);e.feat=zh>=11&&w<=pr-px?{x:px,y:fz0+zh/2+rs*.36,row:1,ts:rs}:null}}
 const zx0=narrow?Math.max(px+fw+18,vw*.5):Math.max(px+fw+56,vw*.44);e.zone={x:zx0,y:e.who.bot+(narrow?14:24),w:pr-zx0,h:st.top-(narrow?12:20)-(e.who.bot+(narrow?14:24))};
 /* the art sits on one of the well's frames, the largest that clears the name, the status line and the features */
-let fp=fAt(NW,0)*.4;for(let f=.6;f>fp;f-=.005){const x=VPW[0]*(1-f),y=VPW[1]*(1-f);if(y>=e.who.bot+12&&y+vh*f<=st.top-10&&x>=zx0-(narrow?6:24)&&x+vw*f<=vw-6){fp=f;break}}
-e.panel={x:VPW[0]*(1-fp),y:VPW[1]*(1-fp),w:vw*fp,h:vh*fp,f:fp};IP=Math.min(NW,(1/fp-1)/WG);
+let fp=fAt(NW)*.4;for(let f=.6;f>fp;f-=.005){const x=VPW[0]*(1-f),y=VPW[1]*(1-f);if(y>=e.who.bot+12&&y+vh*f<=st.top-10&&x>=zx0-(narrow?6:24)&&x+vw*f<=vw-6){fp=f;break}}
+e.panel={x:VPW[0]*(1-fp),y:VPW[1]*(1-fp),w:vw*fp,h:vh*fp,f:fp};
 e.bdg={sz:narrow?10.5:11.5,h:narrow?22:24};
 /* the hero fits between the status line and the links; on small screens its type steps down until it does */
 for(const k of[1,.92,.85,.78,.72]){const ss=(narrow?15:cl(vw*.0125,16,19.5))*k,slh=ss*1.5,sw=narrow?pr-px:Math.min(pr-px,Math.max(520,vw*.5)),bh=(narrow?38:44)*Math.max(.82,k),bfs=(narrow?14:15)*Math.max(.86,k),g1=(narrow?10:18)*k,g2=(narrow?14:22)*k,

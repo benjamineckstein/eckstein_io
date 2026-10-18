@@ -33,7 +33,6 @@ const lang=R.lang==='en'?'en':'de';
 const INK='#08090d',SYS='system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',SANS='Epilogue,"Helvetica Neue",Helvetica,Arial,sans-serif',MONO='"Fragment Mono",ui-monospace,Menlo,monospace';
 const cl=(x,a=0,b=1)=>x<a?a:x>b?b:x,P=(t,a,b)=>cl((t-a)/(b-a)),L=(a,b,p)=>a+(b-a)*p,ss=x=>x*x*(3-2*x),sst=(a,b,x)=>ss(P(x,a,b));
 const mul=s=>()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-const hsh=(a,b)=>{const x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floor(x)};
 const softmin=(a,b,k)=>{const m=Math.min(a,b);return m-k*Math.log(Math.exp((m-a)/k)+Math.exp((m-b)/k))};
 function bz(x1,y1,x2,y2){const cx=3*x1,bx=3*(x2-x1)-cx,ax=1-cx-bx,cy=3*y1,by=3*(y2-y1)-cy,ay=1-cy-by;
 const X=t=>((ax*t+bx)*t+cx)*t,D=t=>(3*ax*t+2*bx)*t+cx,Y=t=>((ay*t+by)*t+cy)*t;
