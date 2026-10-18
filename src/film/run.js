@@ -100,11 +100,12 @@ mode='end';cancelAnimationFrame(raf);raf=0;MANAGED().forEach(el=>el.removeAttrib
 function guarded(fn){try{fn()}catch(e){endOnError(e)}}
 addEventListener('pointermove',e=>{if(mode==='end'&&e.pointerType!=='touch'){PXT=cl(e.clientX/vw*2-1,-1,1);PYT=cl(e.clientY/vh*2-1,-1,1)}},{passive:true});
 function ambient(){if(document.hidden||(++fc&1))return;PX+=(PXT-PX)*.045;PY+=(PYT-PY)*.045;drawEnd(endTT())}
-['pointerdown','keydown','wheel','touchmove'].forEach(ev=>addEventListener(ev,e=>{if(mode!=='trailer')return;if(ev==='keydown'&&['Shift','Alt','Control','Meta'].includes(e.key))return;guarded(startSkip)},{passive:true}));
+['pointerdown','keydown','wheel','touchmove'].forEach(ev=>addEventListener(ev,e=>{if(mode!=='trailer')return;if(ev==='keydown'&&(e.repeat||['Shift','Alt','Control','Meta'].includes(e.key)))return;guarded(startSkip)},{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(mode!=='trailer')return;if(document.hidden){pausedAt=clock();cancelAnimationFrame(raf);raf=0}else if(pausedAt!==null){t0=now()-pausedAt*1000;pausedAt=null;raf=requestAnimationFrame(loop)}});
 function relayout(){if(mode==='skip'||mode==='pre')return;const t=mode==='trailer'?clock():0;if(!fontsOK&&mode==='trailer')return;layout();if(mode==='seek')frame(seekT);else if(mode==='trailer')frame(t);else if(frozen!==null)drawEnd(frozen)}
 let rz=0,lastW=0,lastH=0;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth===lastW&&Math.abs(innerHeight-lastH)<120&&mode!=='seek')return;lastW=innerWidth;lastH=innerHeight;guarded(relayout)},140)});
 E.rp.addEventListener('click',()=>guarded(startTrailer));
+E.skip.addEventListener('click',()=>guarded(startSkip));
 /* ---------- boot ---------- */
 {const spelled=[...PAGE[lang].sub.matchAll(/\[\[(.+?)\]\]/g)].map(m=>m[1]).reduce((a,w)=>a+(a&&!/^[.,!?]$/.test(w)?' ':'')+w,''),line=LINE.join(' ');if(spelled!==line)console.error(`Merge (${lang}): the survivors spell "${spelled}", the line is "${line}"`)}
 E.rp.hidden=false;plan();initLang();lastW=innerWidth;lastH=innerHeight;
