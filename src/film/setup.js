@@ -5,12 +5,12 @@ const LINE=['aL','bL'].map(id=>$(id).textContent.replace(/\s+/g,' ').trim());
 const LBRK={de:2,en:1};
 /* the page everybody gets. [[x]] marks what survives the cut: read in order, the survivors must spell LINE (checked at boot) */
 const PAGE={
-de:{url:'benjamin-ki.de',tld:'-ki.de',brand:'Benjamin.ai',nav:['Leistungen','Über mich','Kontakt'],navCta:'Starten',eyebrow:'Neu: KI-Agenten',hi:'Hi, ich bin Benjamin',
+de:{url:'eckstein.io',brand:'Benjamin.ai',nav:['Leistungen','Über mich','Kontakt'],navCta:'Starten',eyebrow:'Neu: KI-Agenten',hi:'Hi, ich bin Benjamin',
 hl:['Innovative','KI-Lösungen','für dein Business'],hl2:'Agentic Engineering.',
 sub:'[[Alle]] in deinem Team [[können]] [[jetzt]] durchstarten – mit der Power von [[KI]][[.]] [[Wo]] [[ist]] [[dein]] größter Hebel – und wo liegt dein [[Limit]][[?]] Wir zeigen dir, wie du es verschiebst.',
 cta:'Jetzt starten',cta2:'Mehr erfahren',cta3:'Projekt anfragen',xl:'Termin buchen',xh:'30 Min., kostenlos',ck:'Cookie-Einstellungen',
 cards:[['Zukunftssicher','Bereit für morgen? Wir machen es möglich.'],['Skalierbar','Wächst mühelos mit deinem Business.'],['Effizient','Automatisiere deine Prozesse.']]},
-en:{url:'benjamin-ai.com',tld:'-ai.com',brand:'Benjamin.ai',nav:['Services','About','Contact'],navCta:'Get started',eyebrow:'New: AI agents',hi:'Hi, I’m Benjamin',
+en:{url:'eckstein.io',brand:'Benjamin.ai',nav:['Services','About','Contact'],navCta:'Get started',eyebrow:'New: AI agents',hi:'Hi, I’m Benjamin',
 hl:['Innovative','AI solutions','for your business'],hl2:'Agentic engineering.',
 sub:'[[Everyone]] on your team [[can]] [[use]] the power of [[AI]], starting [[now]][[.]] [[Where’s]] [[your]] biggest lever – and where’s your [[limit]][[?]] We show you how to push it.',
 cta:'Get started',cta2:'Learn more',cta3:'Start a project',xl:'Book a call',xh:'30 min, free',ck:'Cookie settings',

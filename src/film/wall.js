@@ -2,16 +2,16 @@
 const N=10,GP=.08,HI=4,HJ=4,OI=HJ*N+HI,DG=.06,XF=.55;
 const CV=$('cv');let X2=CV.getContext('2d');
 let vw=innerWidth,vh=innerHeight,dpr=1,A=1,narrow=vw<640,cw2=0,ch2=0,APP,AFD,VARI,F0,FR,FULL,OC,FRONT,VPF,MIP=[],TS=[],TBM=new Map(),TW0=100,OWNR=[],OSP=[],OVR=null;
-/* the hundred are one template with small differences; POOL holds the small changes they make while iterating */
-const VAR=[],POOL=[];{const r=mul(42);for(let i=0;i<10;i++)VAR.push(Object.assign({},VS[1],{h:i?Math.round((r()*2-1)*15):0,bx:i?.5+(r()*2-1)*.12:.5,by:i?.42+r()*.12:.44,bw:i?.5+r()*.12:.56,full:!i||r()<.55,seed:i*97+5,anon:i?1:0}))
-const q=mul(77);for(let i=0;i<20;i++)POOL.push(Object.assign({},VS[1],{h:Math.round(-46+q()*100),bx:.4+q()*.2,by:.38+q()*.12,bw:.48+q()*.18,full:q()<.6,seed:11+i*13,anon:1}))}
+/* the hundred get the same page, each in their own colour: VAR is ours, then the template once per colour; POOL holds the small changes they make in it while iterating */
+const HUES=[30,60,92,150,184,214],PW=3,VAR=[Object.assign({},VS[1]),...HUES.map(hue=>Object.assign({},VS[1],{anon:1,hue}))],POOL=[];
+{const q=mul(77);for(let i=0;i<HUES.length*PW;i++)POOL.push(Object.assign({},VS[1],{h:Math.round((q()*2-1)*12),bx:.4+q()*.2,by:.38+q()*.12,bw:.48+q()*.18,full:q()<.6,seed:11+i*13,anon:1,hue:HUES[Math.floor(i/PW)]}))}
 function plan(){const r=mul(11);APP=new Float32Array(N*N);AFD=new Float32Array(N*N).fill(.3);VARI=new Uint8Array(N*N);
 for(let j=0;j<N;j++)for(let i=0;i<N;i++){const k=j*N+i,inb=(c0,n)=>i>=c0&&i<c0+n&&j>=c0&&j<c0+n,d=Math.hypot(i-HI,j-HJ);let a;
 if(k===OI)a=T.pop;else{const g=inb(4,2)?0:inb(2,5)?1:2;a=STG[g][0]-(g?.55:.3)+d*.02;AFD[k]=.6}
-APP[k]=a+(k===OI?0:r()*.04);let v;do v=1+Math.floor(r()*9);while((i&&VARI[k-1]===v)||(j&&VARI[k-N]===v));VARI[k]=k===OI?0:v}
-/* every other tile makes one to three small changes, then stops for good: v2, v3 or v4 */
-const q=mul(23);TS=[];for(let k=0;k<N*N;k++){if(k===OI){TS.push(null);continue}const u=q(),n=u<.42?1:u<.78?2:3,ct=[],seq=[];let t=T.itA+q()*1.05,p=-1;
-for(let j=0;j<n;j++){ct.push(t);let x;do x=Math.floor(q()*POOL.length);while(x===p);seq.push(p=x);t+=.72+q()*.5}TS.push({ct,seq,st:ct[n-1]+.4+q()*.3})}
+APP[k]=a+(k===OI?0:r()*.04);let v;do v=1+Math.floor(r()*HUES.length);while((i&&VARI[k-1]===v)||(j&&VARI[k-N]===v)||(i&&j&&VARI[k-N-1]===v)||(j&&i<N-1&&VARI[k-N+1]===v));VARI[k]=k===OI?0:v}
+/* every other tile makes one to three small changes, then stops for good: v2, v3 or v4. Each change steps to another of the changes in their own colour */
+const q=mul(23);TS=[];for(let k=0;k<N*N;k++){if(k===OI){TS.push(null);continue}const u=q(),n=u<.42?1:u<.78?2:3,ct=[],seq=[],c0=(VARI[k]-1)*PW;let t=T.itA+q()*1.05,p=-1,w=0;
+for(let j=0;j<n;j++){ct.push(t);let x;do x=Math.floor(q()*20);while(x===p);p=x;w=j?(w+1+x%(PW-1))%PW:x%PW;seq.push(c0+w);t+=.72+q()*.5}TS.push({ct,seq,st:ct[n-1]+.4+q()*.3})}
 const last=TS.filter(Boolean).sort((a,b)=>b.st-a.st);last[0].st=Math.max(last[0].st,T.hl0-.1);
 OWNR=new Array(N*N).fill(-1);[...Array(N*N).keys()].filter(k=>k!==OI).sort((a,b)=>APP[a]-APP[b]||a-b).forEach((k,j)=>OWNR[k]=j)}
 const going=t=>1+TS.reduce((n,s)=>n+(s&&t<s.st?1:0),0);
@@ -24,15 +24,14 @@ const fw=narrow?vw*.72:Math.min(vw*.54,vh*.6*A),fh=fw/A;
 FRONT=narrow?{x:vw/2,y:Math.min(vh-fh/2-vh*.035,Math.max(vh*.58,fh/2+vh*.2)),w:fw,h:fh}:{x:vw*.42,y:vh*.57,w:fw,h:fh};
 VPF=narrow?[vw*.5,FRONT.y-fh/2-vh*.3]:[vw*.99,vh*.02];MIP=[];TBM.clear();TW0=Math.round(FULL.s*dpr*1.12);OSP=[];
 const rw=Math.round(FR[0].s*dpr*1.02);OVR=lay(rw,Math.round(rw/A),VAR[1]).ov;OVR.ref=rw}
-/* the owner's name and address, drawn over a template tile: one small sprite pair per person, scaled with the tile */
-function ownerSprite(k){if(OSP[k])return OSP[k];const nm=OWN[OWNR[k]%OWN.length],o=OVR,bs=Math.max(8,Math.ceil(o.bs*o.ref*1.25)),us=Math.max(7,Math.ceil(o.us*o.ref*1.25)),pad=Math.ceil(bs*.3);
+/* the owner's name and greeting, drawn over a template tile: one small sprite pair per person, scaled with the tile */
+function ownerSprite(k){if(OSP[k])return OSP[k];const nm=OWN[OWNR[k]%OWN.length],o=OVR,bs=Math.max(8,Math.ceil(o.bs*o.ref*1.25)),pad=Math.ceil(bs*.3);
 const mk=(txt,font,sz,col)=>{MC.font=font;if(HASLS)MC.letterSpacing='0px';const w=Math.ceil(MC.measureText(txt).width)+pad*2,c=cvs(w,Math.ceil(sz*1.6)),g=c.getContext('2d');g.font=font;g.fillStyle=col;g.textBaseline='middle';g.fillText(txt,pad,c.height/2);return c};
 let h=null,hs=0;if(o.gs){hs=Math.max(8,Math.ceil(o.gs*o.ref*1.25));const tx=PAGE[lang].hi.replace('Benjamin',nm),f=`${o.gw} ${hs}px ${SYS}`;MC.font=f;const tw=MC.measureText(tx).width,r0=o.gr*hs,gp=o.gg*hs;
 h=cvs(tw+gp+2*r0+pad*2+r0*1.4,Math.ceil(hs*1.9));const g=h.getContext('2d');g.font=f;g.fillStyle=o.gcol;g.textBaseline='middle';g.fillText(tx,pad,h.height/2);wave(g,pad+tw+gp+r0,h.height/2,r0);h.cw=tw+gp+2*r0}
-return OSP[k]={b:mk(nm+'.ai',`${o.bw} ${bs}px ${SYS}`,bs,o.bc),u:mk(nm.toLowerCase()+PAGE[lang].tld,`500 ${us}px ${SYS}`,us,o.uc),h,hs,bs,us,pad}}
+return OSP[k]={b:mk(nm,`${o.bw} ${bs}px ${SYS}`,bs,o.bc),h,hs,bs,pad}}
 function ownerOv(k,x,y,w,al,ov){if(k===OI||!ov||al<=.01)return;const sp=ownerSprite(k),c=X2,W=w*dpr,X=x*dpr,Y=y*dpr;c.globalAlpha=al;
 let s=ov.bs*W/sp.bs;c.drawImage(sp.b,X+ov.bx*W-sp.pad*s,Y+ov.by*W-sp.b.height/2*s,sp.b.width*s,sp.b.height*s);
-s=ov.us*W/sp.us;c.drawImage(sp.u,X+ov.ux*W-sp.u.width/2*s,Y+ov.uy*W-sp.u.height/2*s,sp.u.width*s,sp.u.height*s);
 if(sp.h&&ov.gs){s=ov.gs*W/sp.hs;c.drawImage(sp.h,X+ov.gx*W-(ov.gc?sp.h.cw/2:0)*s-sp.pad*s,Y+ov.gy*W-sp.h.height/2*s,sp.h.width*s,sp.h.height*s)}c.globalAlpha=1}
 /* the camera: the zoom-out to the hundred, a slow drift toward ours while they iterate, then the push-in as ours lifts out */
 function camW(t){let c=F0;for(let k=STG.length-1;k>=0;k--)if(t>=STG[k][0]){c=lc(k?FR[k-1]:F0,FR[k],sst(STG[k][0],STG[k][0]+STG[k][1],t));break}
