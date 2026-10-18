@@ -62,7 +62,7 @@ night.pv.forEach(e=>J(T.N0,()=>pageBmp(e.k,PV.w*dpr,PV.h*dpr,e.s)));
 J(T.pg0,bigBmp);J(T.pg1,buildArt);
 STK.forEach((v,k)=>J(T.pg0,()=>stackBmp(k)));
 JOBS.sort((a,b)=>a.due-b.due);
-const ts=[];for(let t=5.4;t<37.5;t+=1.25)ts.push(t);ts.push(T.pg1+.2,T.redA+.4,(T.redA+T.redB)/2,T.redB+.1,T.litA+.4,T.fl0+.3,T.fl0+.8,T.dp0+.3,T.ho-.1,T.ho+.3,T.END+.5);
+const ts=[];for(let t=5.4;t<37.5;t+=1.25)ts.push(t);ts.push(T.pg1+.2,T.redA+.4,T.redA+.75,(T.redA+T.redB)/2,T.redB+.1,T.litA+.4,T.fl0+.3,T.fl0+.8,T.dp0+.3,T.ho-.1,T.ho+.3,T.END+.5);
 for(let i=0;i<ts.length;i+=2)J(1e9,()=>rehearse(ts.slice(i,i+2)),1)}
 function rehearse(ts){if(!REH)return;const keep=X2;X2=REHX;try{for(const t of ts)render(t)}finally{X2=keep}X2.globalAlpha=1/255;X2.drawImage(REH,0,0,2,2);X2.globalAlpha=1}
 function runJobs(ms,film,hold){const t0=now();while(JOBS.length&&now()-t0<ms){const j=JOBS[0];if(j.reh&&film){JOBS.shift();continue}if(j.reh&&!hold)break;JOBS.shift();const a=now();j.fn();if(PERF)PF.jobs.push(+(now()-a).toFixed(2))}if(!JOBS.length)prepared=true}
@@ -77,10 +77,10 @@ function frame(t,hold){render(t);renderDOM(t,hold)}
 /* the film holds on the prompt (complete pill, blinking caret) until the fonts are in and the queue is done; then it types */
 const HOLD_T=T.ty0-.02;
 function loop(){raf=requestAnimationFrame(loop);
-if(mode==='trailer'){const fs=now();let t=clock(),hold=false;calm=fs-lastF<40?calm+1:0;lastF=fs;
+if(mode==='trailer'){if(!ready){t0=now();return}const fs=now();let t=clock(),hold=false;calm=fs-lastF<40?calm+1:0;lastF=fs;
 if(!released&&t>=HOLD_T){if(!holdStart){holdStart=fs;HOLD0=fs}const done=ready&&!JOBS.length&&calm>=3;if(done||fs-holdStart>7e3){released=true;if(PERF)PF.hold=+(fs-holdStart).toFixed(0)}else hold=true;t0=fs-HOLD_T*1000;t=HOLD_T}
 if(t>=T.END){setEnd();return}
-if(ready&&JOBS.length&&(hold||t<T.pa||t>=T.pa+.44))runJobs(hold?36:7,released,hold);
+if(ready&&JOBS.length&&(hold||t>=T.pa+.44))runJobs(hold?36:7,released,hold);
 frame(t,hold)}
 else if(mode==='skip')skipFrame();else if(mode==='end')ambient()}
 const MANAGED=()=>[E.tl,E.skip,E.pill,E.band,E.bt1,E.bt2,E.hud,...E.hl,E.who,E.rp,E.st,E.aL,E.bL,E.ft,...E.li];
@@ -111,4 +111,4 @@ const FONTS=['300 100px Epilogue','400 16px Epilogue','500 16px Epilogue','600 1
 const fontsIn=Promise.race([Promise.all(FONTS.map(f=>document.fonts.load(f,'AaÄöü–’?'))).then(()=>document.fonts.ready),new Promise(r=>setTimeout(r,4000))]).catch(()=>{}).then(()=>{fontsOK=true});
 if(early||seekT!==null)fontsIn.then(()=>{layout();JOBS.length=0;if(early){E.end.style.visibility='';AP0=T.END-T.wo0+.3;setEnd();return}if(seekT>=T.END){setEnd(seekT-T.wo0)}else{mode='seek';E.end.inert=true;E.end.setAttribute('aria-hidden','true');frame(seekT)}});
 else{startTrailer();fontsIn.then(()=>{if(mode==='trailer'&&!ready)layout()})}
-if(DEV)window.__m={get t(){return mode==="trailer"?(holdStart&&!released?-1:clock()):null},get mode(){return mode},T,night,render:t=>{for(const j of JOBS.splice(0))if(!j.reh)j.fn();frame(t)},VS,PF,bmp};
+if(DEV)window.__m={get t(){return mode==="trailer"?((holdStart&&!released)||!ready?-1:clock()):null},get mode(){return mode},T,night,render:t=>{for(const j of JOBS.splice(0))if(!j.reh)j.fn();frame(t)},VS,PF,bmp};
