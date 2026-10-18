@@ -30,8 +30,8 @@ favicon.
 - Target: under 105 kB total transfer (what actually goes over the wire; GitHub Pages serves
   text assets compressed, woff2 already is).
 - Hard CI gate: 180 kB raw, enforced by `scripts/bundle-gate.mjs` on every deploy.
-- Measured: about 157 kB raw and 92 kB transfer per page. The HTML is 107 kB raw, 43 kB
-  gzipped; the two fonts are 50 kB.
+- Measured: about 158.5 kB raw and 93.3 kB transfer per page. The HTML is 108.7 kB raw,
+  43.5 kB gzipped; the two fonts are 49.6 kB.
 
 Run `pnpm build && pnpm bundle-gate` to see the current numbers.
 
@@ -48,7 +48,8 @@ bash scripts/linkcheck.sh   # after a build: curl every external link
 
 The film's source is `src/film/*.js`, seven parts that `src/components/Film.astro` joins into
 one inline script. `pnpm dev` and `FILM_DEV=1 pnpm build` switch on the review hooks
-(`?t=<seconds>` seeks, `?perf=1`, `window.__m`); the plain build that CI runs leaves them out.
+(`?t=<seconds>` seeks, `?perf=1`, `window.__m`). The plain build that CI runs still ships their
+code, inert behind `const DEV=false`. The build fails if the joined script does not parse.
 
 `scripts/gen-og.mjs` is a one-off generator, not part of the build; the PNG is committed. It
 serves `dist/` locally and screenshots the German end screen at 1200x630 as a reduced-motion
